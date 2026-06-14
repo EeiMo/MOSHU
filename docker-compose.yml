@@ -1,0 +1,18 @@
+services:
+  new-api:
+    image: calciumion/new-api:latest
+    container_name: moshu-new-api
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - SQL_DSN=
+      - GLOBAL_WEB_RATE_LIMIT=1200
+      - GLOBAL_WEB_RATE_LIMIT_DURATION=180
+      - GLOBAL_API_RATE_LIMIT=1200
+      - GLOBAL_API_RATE_LIMIT_DURATION=180
+      - CRITICAL_RATE_LIMIT=600
+      - CRITICAL_RATE_LIMIT_DURATION=180
