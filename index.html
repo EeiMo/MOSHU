@@ -588,6 +588,103 @@ body.reg #lgLoginBtn{display:none;}
 .bg-text{position:relative;z-index:1;}
 
 /* form box */
+/* ── 模型 tab ── */
+.model-hero{
+  display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end;
+  padding-bottom:28px;border-bottom:1px solid var(--border2);
+}
+@media(max-width:760px){.model-hero{grid-template-columns:1fr;}}
+.model-hero .u-headline{font-size:clamp(28px,3.5vw,44px);}
+
+.model-base{
+  background:rgba(10,10,8,.7);border:1px solid var(--border);
+  padding:14px 18px;display:flex;flex-direction:column;gap:6px;
+  min-width:280px;
+}
+.mb-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.22em;color:var(--dim);
+}
+.mb-code{
+  font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--blue);
+  user-select:all;
+}
+
+.model-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:1px;
+  background:var(--border2);
+}
+@media(max-width:680px){.model-grid{grid-template-columns:1fr;}}
+
+.model-card{
+  position:relative;background:rgba(10,10,8,.7);
+  padding:24px 26px;display:flex;flex-direction:column;gap:14px;
+  transition:background .25s,transform .25s;
+  overflow:hidden;
+}
+.model-card:hover{background:rgba(20,20,18,.85);}
+.model-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent,var(--orange)),transparent);
+  opacity:.6;
+}
+
+.mc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.mc-name{
+  font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;
+  color:var(--paper);letter-spacing:-.01em;line-height:1.2;
+}
+.mc-tag{
+  font-size:10px;font-weight:700;letter-spacing:.2em;
+  padding:3px 9px;flex-shrink:0;
+  background:rgba(217,119,87,.1);color:var(--orange);
+  border:1px solid rgba(217,119,87,.25);
+}
+.mc-tag.flash{background:rgba(106,155,204,.1);color:var(--blue);border-color:rgba(106,155,204,.25);}
+
+.mc-desc{font-size:13px;color:var(--mid);line-height:1.7;}
+
+.mc-prices{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:var(--border2);
+  margin-top:4px;
+}
+.mc-price{
+  background:rgba(255,255,255,.015);
+  padding:12px 14px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.mc-price-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.18em;color:var(--dim);
+}
+.mc-price-val{
+  font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;
+  color:var(--paper);line-height:1.1;
+}
+.mc-price-sub{
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
+}
+
+.mc-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-top:10px;border-top:1px solid var(--border2);
+}
+.mc-id{
+  flex:1;font-family:'JetBrains Mono',monospace;font-size:12px;
+  padding:6px 10px;background:rgba(255,255,255,.03);
+  border:1px solid var(--border2);color:var(--orange);
+  user-select:all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.mc-copy{
+  font-size:10px;font-weight:600;letter-spacing:.15em;
+  padding:6px 12px;background:none;color:var(--mid);
+  border:1px solid var(--border);cursor:pointer;flex-shrink:0;
+  transition:color .2s,border-color .2s,background .2s;
+}
+.mc-copy:hover{color:var(--orange);border-color:rgba(217,119,87,.4);background:rgba(217,119,87,.06);}
+
+
 .fbox{
   background:linear-gradient(180deg,rgba(20,20,18,.6),rgba(8,8,6,.6));
   border:1px solid var(--border2);
@@ -1122,7 +1219,7 @@ body.reg #lgLoginBtn{display:none;}
   <div class="lg-canvas-side">
     <canvas id="lgCanvas"></canvas>
     <div class="lg-canvas-overlay">
-      <div class="lg-canvas-title">墨之<em>枢纽</em></div>
+      <div class="lg-canvas-title">墨枢<em>API</em></div>
       <p class="lg-canvas-desc">统一管理上游 AI 接口，一个端点兼容 OpenAI 格式，多渠道自动负载均衡。</p>
       <div class="lg-canvas-nodes">
         <span class="lg-node-tag">OpenAI</span>
@@ -1306,9 +1403,10 @@ body.reg #lgLoginBtn{display:none;}
   <div class="u-body">
     <nav class="u-nav">
       <button class="u-tab on" onclick="uTab(0)"><span class="u-tab-num">01</span>概览</button>
-      <button class="u-tab" onclick="uTab(1)"><span class="u-tab-num">02</span>我的令牌</button>
-      <button class="u-tab" onclick="uTab(2)"><span class="u-tab-num">03</span>请求日志</button>
-      <button class="u-tab" onclick="uTab(3)"><span class="u-tab-num">04</span>账户设置</button>
+      <button class="u-tab" onclick="uTab(1)"><span class="u-tab-num">02</span>模型</button>
+      <button class="u-tab" onclick="uTab(2)"><span class="u-tab-num">03</span>我的令牌</button>
+      <button class="u-tab" onclick="uTab(3)"><span class="u-tab-num">04</span>请求日志</button>
+      <button class="u-tab" onclick="uTab(4)"><span class="u-tab-num">05</span>账户设置</button>
       <span class="u-nav-indicator" id="uNavIndicator"></span>
     </nav>
 
@@ -1448,8 +1546,30 @@ body.reg #lgLoginBtn{display:none;}
       </div>
     </div>
 
-    <!-- 02 令牌 -->
+    <!-- 01 模型 -->
     <div id="uP1" class="u-page">
+      <div class="model-hero">
+        <div class="model-hero-l">
+          <div class="u-eyebrow">MODELS · 可用模型</div>
+          <h1 class="u-headline">通过墨枢调用<br>这些<em>模型</em>。</h1>
+          <p class="u-desc">所有模型均通过 OpenAI 兼容格式访问，<br>使用你的令牌即可调用。</p>
+        </div>
+        <div class="model-hero-r">
+          <div class="model-base">
+            <span class="mb-lbl">BASE_URL</span>
+            <code class="mb-code">https://moshu.eeimoo.cn/v1</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-hd"><span class="sec-hd-t">DEEPSEEK · 推理与对话</span></div>
+      <div class="model-grid" id="modelGrid">
+        <!-- 由 JS 渲染 -->
+      </div>
+    </div>
+
+    <!-- 02 令牌 -->
+    <div id="uP2" class="u-page">
       <div class="sec-hd">
         <span class="sec-hd-t">我的令牌 · TOKENS</span>
         <div style="display:flex;gap:10px;align-items:center;">
@@ -1488,7 +1608,7 @@ body.reg #lgLoginBtn{display:none;}
     </div>
 
     <!-- 03 日志 -->
-    <div id="uP2" class="u-page">
+    <div id="uP3" class="u-page">
       <div class="sec-hd">
         <span class="sec-hd-t">请求日志 · LOGS</span>
         <button class="sec-hd-a" onclick="loadULogs()">刷新</button>
@@ -1500,7 +1620,7 @@ body.reg #lgLoginBtn{display:none;}
     </div>
 
     <!-- 04 设置 -->
-    <div id="uP3" class="u-page">
+    <div id="uP4" class="u-page">
       <div>
         <div class="sec-hd"><span class="sec-hd-t">基本信息 · PROFILE</span></div>
         <div class="fbox">
@@ -2277,7 +2397,7 @@ function copyCode(){
 }
 
 /* ── 快速生成令牌 ── */
-function goToTokens(){ uTab(1); }
+function goToTokens(){ uTab(2); }
 
 function quickGenToken(){
   var btn=document.getElementById('qtGenBtn');
@@ -2367,7 +2487,7 @@ function uTab(n){
   moveUNavIndicator(tabs[n]);
 
   /* page 切换 */
-  [0,1,2,3].forEach(function(i){
+  [0,1,2,3,4].forEach(function(i){
     var el=document.getElementById('uP'+i);
     if(!el) return;
     el.classList.remove('active','from-right','from-left');
@@ -2381,8 +2501,9 @@ function uTab(n){
   prevUTab = n;
 
   if(n===0&&!qtJustGenerated) loadUData();
-  if(n===1) loadUTokens();
-  if(n===2) loadULogs();
+  if(n===1) loadUModels();
+  if(n===2) loadUTokens();
+  if(n===3) loadULogs();
 }
 
 function moveUNavIndicator(el){
@@ -2399,6 +2520,76 @@ function toggleUCreateForm(){
   var f=document.getElementById('uCreateForm');
   f.style.display=f.style.display==='none'?'flex':'none';
   if(f.style.display!=='none'){f.style.flexDirection='column';f.style.gap='12px';document.getElementById('uTkName').focus();}
+}
+
+/* ── 模型展示 ── */
+var MODEL_META = {
+  'deepseek-v4-pro': {
+    label:'PRO',tagClass:'',accent:'var(--orange)',
+    desc:'深度推理模型，支持长链路思考与复杂任务，适合代码、数学、研究类场景。',
+  },
+  'deepseek-v4-flash': {
+    label:'FLASH',tagClass:'flash',accent:'var(--blue)',
+    desc:'快速对话模型，低延迟高吞吐，适合日常对话、文案生成、客服等高频场景。',
+  },
+};
+
+function loadUModels(){
+  var grid=document.getElementById('modelGrid');
+  if(!grid) return;
+  grid.innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--dim);font-size:13px;">加载中…</div>';
+  fetch('/api/pricing')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var data=d&&d.data||[];
+      var groupRatio=(d&&d.group_ratio&&d.group_ratio['default'])||1;
+      /* 1 ratio = $0.002 per 1K tokens（按 New API 文档标准） */
+      var BASE_USD_PER_K=0.002;
+      var USD_TO_CNY=SYS_CFG.usd_exchange_rate||7.3;
+
+      var cards=data.map(function(m){
+        var meta=MODEL_META[m.model_name]||{label:'',tagClass:'',accent:'var(--orange)',desc:m.tags||''};
+        /* 价格 — 后端已是人民币单位，1 ratio = ¥0.002/1K tokens */
+        var BASE_CNY_PER_K=0.002;
+        var inputCNY=m.model_ratio*groupRatio*BASE_CNY_PER_K*1000;
+        var outputCNY=m.model_ratio*(m.completion_ratio||1)*groupRatio*BASE_CNY_PER_K*1000;
+
+        return '<div class="model-card" style="--accent:'+meta.accent+'">'+
+          '<div class="mc-head">'+
+            '<div class="mc-name">'+m.model_name+'</div>'+
+            (meta.label?'<span class="mc-tag '+meta.tagClass+'">'+meta.label+'</span>':'')+
+          '</div>'+
+          '<div class="mc-desc">'+meta.desc+'</div>'+
+          '<div class="mc-prices">'+
+            '<div class="mc-price">'+
+              '<span class="mc-price-lbl">INPUT · 输入</span>'+
+              '<span class="mc-price-val">¥ '+inputCNY.toFixed(2)+'</span>'+
+              '<span class="mc-price-sub">/ 百万 tokens</span>'+
+            '</div>'+
+            '<div class="mc-price">'+
+              '<span class="mc-price-lbl">OUTPUT · 输出</span>'+
+              '<span class="mc-price-val">¥ '+outputCNY.toFixed(2)+'</span>'+
+              '<span class="mc-price-sub">/ 百万 tokens</span>'+
+            '</div>'+
+          '</div>'+
+          '<div class="mc-foot">'+
+            '<code class="mc-id">'+m.model_name+'</code>'+
+            '<button class="mc-copy" onclick="copyModelId(\''+m.model_name+'\',this)">复制 ID</button>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+
+      grid.innerHTML=cards||'<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--dim);font-size:13px;">暂无可用模型</div>';
+    })
+    .catch(function(){
+      grid.innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--red);font-size:13px;">加载失败</div>';
+    });
+}
+
+function copyModelId(id, btn){
+  navigator.clipboard.writeText(id).then(function(){
+    btn.textContent='已复制';setTimeout(function(){btn.textContent='复制 ID';},2000);
+  });
 }
 
 function loadUTokens(){
