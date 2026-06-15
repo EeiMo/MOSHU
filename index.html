@@ -309,6 +309,27 @@ body.reg #lgLoginBtn{display:none;}
 }
 .sec-hd-a:hover{color:var(--orange);}
 
+/* log filter bar */
+.log-filter{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 0 14px;margin-bottom:0;
+  border-bottom:1px solid var(--border2);
+}
+.lf-select{
+  appearance:none;-webkit-appearance:none;
+  background:rgba(10,10,8,.8);color:var(--paper);
+  border:1px solid var(--border);border-radius:6px;
+  padding:6px 28px 6px 10px;font-size:12px;font-family:inherit;
+  cursor:pointer;transition:border-color .2s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8880'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;
+}
+.lf-select:hover{border-color:var(--orange);}
+.lf-select:focus{outline:none;border-color:var(--orange);}
+.lf-label{
+  font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--dim);
+}
+
 /* table */
 .tbl{width:100%;border-collapse:collapse;
   background:rgba(10,10,8,.6);
@@ -1613,9 +1634,21 @@ body.reg #lgLoginBtn{display:none;}
         <span class="sec-hd-t">请求日志 · LOGS</span>
         <button class="sec-hd-a" onclick="loadULogs()">刷新</button>
       </div>
+      <div class="log-filter">
+        <span class="lf-label">模型</span>
+        <select class="lf-select" id="logModelFilter" onchange="applyLogFilter()">
+          <option value="">全部模型</option>
+        </select>
+        <span class="lf-label">状态</span>
+        <select class="lf-select" id="logStatusFilter" onchange="applyLogFilter()">
+          <option value="">全部</option>
+          <option value="ok">成功</option>
+          <option value="err">失败</option>
+        </select>
+      </div>
       <table class="tbl">
-        <thead><tr><th>时间</th><th>模型</th><th>状态</th><th>消耗</th><th>耗时</th></tr></thead>
-        <tbody id="uLogBody"><tr><td colspan="5" class="tbl-empty">加载中…</td></tr></tbody>
+        <thead><tr><th>时间</th><th>模型</th><th>输入</th><th>输出</th><th>状态</th><th>消耗余额</th><th>耗时</th></tr></thead>
+        <tbody id="uLogBody"><tr><td colspan="7" class="tbl-empty">加载中…</td></tr></tbody>
       </table>
     </div>
 
@@ -2813,29 +2846,63 @@ function delToken(id,btn){
     .catch(function(){btn.disabled=false;});
 }
 
+var _logRaw=[];
 function loadULogs(){
-  document.getElementById('uLogBody').innerHTML='<tr><td colspan="5" class="tbl-empty">加载中…</td></tr>';
-  api('/api/log/self?p=1&page_size=30&type=2',{credentials:'include'})
+  document.getElementById('uLogBody').innerHTML='<tr><td colspan="7" class="tbl-empty">加载中…</td></tr>';
+  api('/api/log/self?p=1&page_size=50&type=2',{credentials:'include'})
     .then(function(r){return r.json();})
     .then(function(d){
-      var list=(d.data&&d.data.items)?d.data.items:(Array.isArray(d.data)?d.data:[]);
-      document.getElementById('uLogBody').innerHTML=!list.length
-        ?'<tr><td colspan="5" class="tbl-empty">暂无记录</td></tr>'
-        :list.map(function(l){
-          var t=new Date((l.created_at||l.request_at||0)*1000);
-          var ts=String(t.getMonth()+1).padStart(2,'0')+'/'+String(t.getDate()).padStart(2,'0')+
-            ' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
-          var ok=l.code===200||l.status_code===200;
-          var tk=(l.prompt_tokens||0)+(l.completion_tokens||0)||(l.total_tokens)||0;
-          return '<tr>'+
-            '<td class="mn">'+ts+'</td>'+
-            '<td class="nm">'+(l.model_name||l.model||'—')+'</td>'+
-            '<td class="mn '+(ok?'ok':'er')+'">'+(ok?'200':'ERR')+'</td>'+
-            '<td class="mn hi">'+(tk||'—')+'</td>'+
-            '<td class="mn">'+(l.elapsed_time?Math.round(l.elapsed_time*1000)+'ms':'—')+'</td>'+
-            '</tr>';
-        }).join('');
-    }).catch(function(){document.getElementById('uLogBody').innerHTML='<tr><td colspan="5" class="tbl-empty">加载失败</td></tr>';});
+      _logRaw=(d.data&&d.data.items)?d.data.items:(Array.isArray(d.data)?d.data:[]);
+      populateModelFilter();
+      applyLogFilter();
+    }).catch(function(){document.getElementById('uLogBody').innerHTML='<tr><td colspan="7" class="tbl-empty">加载失败</td></tr>';});
+}
+function populateModelFilter(){
+  var sel=document.getElementById('logModelFilter');
+  var cur=sel.value;
+  var models=[];
+  _logRaw.forEach(function(l){
+    var m=l.model_name||l.model||'';
+    if(m&&models.indexOf(m)===-1) models.push(m);
+  });
+  models.sort();
+  sel.innerHTML='<option value="">全部模型</option>'+models.map(function(m){
+    return '<option value="'+m+'">'+m+'</option>';
+  }).join('');
+  if(cur&&models.indexOf(cur)!==-1) sel.value=cur;
+}
+function applyLogFilter(){
+  var mf=document.getElementById('logModelFilter').value;
+  var sf=document.getElementById('logStatusFilter').value;
+  var list=_logRaw.filter(function(l){
+    if(mf&&((l.model_name||l.model||'')!==mf)) return false;
+    var ok=!l.content;
+    if(sf==='ok'&&!ok) return false;
+    if(sf==='err'&&ok) return false;
+    return true;
+  });
+  document.getElementById('uLogBody').innerHTML=!list.length
+    ?'<tr><td colspan="7" class="tbl-empty">暂无记录</td></tr>'
+    :list.map(function(l){
+      var t=new Date((l.created_at||l.request_at||0)*1000);
+      var ts=String(t.getMonth()+1).padStart(2,'0')+'/'+String(t.getDate()).padStart(2,'0')+
+        ' '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+      var ok=!l.content;
+      var q=l.quota||0;
+      var cny=q/SYS_CFG.quota_per_unit*SYS_CFG.usd_exchange_rate;
+      var costStr=q?('¥'+cny.toFixed(4)):'—';
+      var pt=l.prompt_tokens||0;
+      var ct=l.completion_tokens||0;
+      return '<tr>'+
+        '<td class="mn">'+ts+'</td>'+
+        '<td class="nm">'+(l.model_name||l.model||'—')+'</td>'+
+        '<td class="mn">'+(pt||'—')+'</td>'+
+        '<td class="mn">'+(ct||'—')+'</td>'+
+        '<td class="mn '+(ok?'ok':'er')+'">'+(ok?'200':'ERR')+'</td>'+
+        '<td class="mn hi">'+costStr+'</td>'+
+        '<td class="mn">'+(l.use_time?l.use_time+'s':'—')+'</td>'+
+        '</tr>';
+    }).join('');
 }
 
 function saveDisplay(){
