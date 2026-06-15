@@ -1583,9 +1583,8 @@ body.reg #lgLoginBtn{display:none;}
         </div>
       </div>
 
-      <div class="sec-hd"><span class="sec-hd-t">DEEPSEEK · 推理与对话</span></div>
-      <div class="model-grid" id="modelGrid">
-        <!-- 由 JS 渲染 -->
+      <div id="modelSections">
+        <!-- 由 JS 动态渲染分组 -->
       </div>
     </div>
 
@@ -1936,7 +1935,6 @@ try{
 
 function authHeaders(extra){
   var h = {};
-  if(CUR_USER_ID) h['New-Api-User'] = String(CUR_USER_ID);
   if(extra){ for(var k in extra) h[k] = extra[k]; }
   return h;
 }
@@ -2062,7 +2060,10 @@ function doLogin(){
       document.getElementById('lgErr').textContent=d.message||'登录失败';
       document.getElementById('lgErr').classList.add('show');return;
     }
-    d.data.role===100?enterAdmin(d.data):enterUser(d.data);
+    fetch('/api/user/self',{credentials:'include'}).then(function(r2){return r2.json();}).then(function(u){
+      if(!u.success||!u.data){document.getElementById('lgErr').textContent='获取用户信息失败';document.getElementById('lgErr').classList.add('show');return;}
+      u.data.role==='admin'?enterAdmin(u.data):enterUser(u.data);
+    });
   }).catch(function(e){
     btn.disabled=false;btn.textContent='登 录';
     document.getElementById('lgErr').textContent='请求失败：'+(e.message||'未知错误');
@@ -2096,7 +2097,7 @@ function doRegister(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({username:un,password:pw})
     }).then(function(r){return r.json();})
-    .then(function(d2){if(d2.success&&d2.data)d2.data.role===100?enterAdmin(d2.data):enterUser(d2.data);});
+    .then(function(d2){if(!d2.success)return;fetch('/api/user/self',{credentials:'include'}).then(function(r3){return r3.json();}).then(function(u){if(u.success&&u.data)u.data.role==='admin'?enterAdmin(u.data):enterUser(u.data);});});
   }).catch(function(){btn.disabled=false;btn.textContent='注 册';});
 }
 
@@ -2566,56 +2567,103 @@ var MODEL_META = {
     desc:'快速对话模型，低延迟高吞吐，适合日常对话、文案生成、客服等高频场景。',
   },
 };
+var VENDOR_MAP = {
+  'deepseek':  {name:'DEEPSEEK',  sub:'推理与对话', accent:'var(--orange)'},
+  'gpt':       {name:'OPENAI',    sub:'对话与生成', accent:'var(--green)'},
+  'o1':        {name:'OPENAI',    sub:'推理模型',   accent:'var(--green)'},
+  'o3':        {name:'OPENAI',    sub:'推理模型',   accent:'var(--green)'},
+  'o4':        {name:'OPENAI',    sub:'推理模型',   accent:'var(--green)'},
+  'claude':    {name:'ANTHROPIC', sub:'对话与推理', accent:'var(--blue)'},
+  'glm':       {name:'ZHIPU',     sub:'对话与生成', accent:'var(--mid)'},
+  'qwen':      {name:'QWEN',      sub:'对话与生成', accent:'var(--mid)'},
+  'llama':     {name:'META',      sub:'开源模型',   accent:'var(--mid)'},
+  'gemini':    {name:'GOOGLE',    sub:'多模态',     accent:'var(--blue)'},
+  'mistral':   {name:'MISTRAL',   sub:'对话与推理', accent:'var(--mid)'},
+};
+function getVendor(mn){
+  var p=mn.split('-')[0].toLowerCase();
+  return VENDOR_MAP[p]||{name:p.toUpperCase(), sub:'模型服务', accent:'var(--orange)'};
+}
+function autoDesc(m){
+  if(m.tags) return m.tags;
+  var r=m.model_ratio||0;
+  if(r<=0.01) return '轻量快速模型，低延迟低成本，适合高频简单任务。';
+  if(r<=0.5) return '通用对话模型，兼顾性能与成本，适合日常使用。';
+  if(r<=2) return '高性能模型，适合复杂推理、代码生成等任务。';
+  return '旗舰推理模型，支持长链路思考，适合研究、数学等高难度场景。';
+}
+function autoLabel(m){
+  var n=m.model_name||'';
+  if(/flash|lite|mini|small/i.test(n)) return {label:'FLASH',tagClass:'flash',accent:'var(--blue)'};
+  if(/pro|max|ultra|heavy/i.test(n)) return {label:'PRO',tagClass:'',accent:'var(--orange)'};
+  return {label:'',tagClass:'',accent:'var(--orange)'};
+}
+function renderModelCard(m,gr){
+  var meta=MODEL_META[m.model_name];
+  var al=autoLabel(m);
+  var label=meta?meta.label:al.label;
+  var tagClass=meta?meta.tagClass:al.tagClass;
+  var accent=meta?meta.accent:al.accent;
+  var desc=meta?meta.desc:autoDesc(m);
+  var BK=0.002;
+  var ic=m.model_ratio*gr*BK*1000;
+  var oc=m.model_ratio*(m.completion_ratio||1)*gr*BK*1000;
+  return '<div class="model-card" style="--accent:'+accent+'">'+
+    '<div class="mc-head">'+
+      '<div class="mc-name">'+m.model_name+'</div>'+
+      (label?'<span class="mc-tag '+tagClass+'">'+label+'</span>':'')+
+    '</div>'+
+    '<div class="mc-desc">'+desc+'</div>'+
+    '<div class="mc-prices">'+
+      '<div class="mc-price">'+
+        '<span class="mc-price-lbl">INPUT · 输入</span>'+
+        '<span class="mc-price-val">¥ '+ic.toFixed(2)+'</span>'+
+        '<span class="mc-price-sub">/ 百万 tokens</span>'+
+      '</div>'+
+      '<div class="mc-price">'+
+        '<span class="mc-price-lbl">OUTPUT · 输出</span>'+
+        '<span class="mc-price-val">¥ '+oc.toFixed(2)+'</span>'+
+        '<span class="mc-price-sub">/ 百万 tokens</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="mc-foot">'+
+      '<code class="mc-id">'+m.model_name+'</code>'+
+      '<button class="mc-copy" onclick="copyModelId(\''+m.model_name+'\',this)">复制 ID</button>'+
+    '</div>'+
+  '</div>';
+}
 
 function loadUModels(){
-  var grid=document.getElementById('modelGrid');
-  if(!grid) return;
-  grid.innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--dim);font-size:13px;">加载中…</div>';
+  var ct=document.getElementById('modelSections');
+  if(!ct) return;
+  ct.innerHTML='<div style="padding:24px;text-align:center;color:var(--dim);font-size:13px;">加载中…</div>';
   fetch('/api/pricing')
     .then(function(r){return r.json();})
     .then(function(d){
       var data=d&&d.data||[];
-      var groupRatio=(d&&d.group_ratio&&d.group_ratio['default'])||1;
-      /* 1 ratio = $0.002 per 1K tokens（按 New API 文档标准） */
-      var BASE_USD_PER_K=0.002;
-      var USD_TO_CNY=SYS_CFG.usd_exchange_rate||7.3;
-
-      var cards=data.map(function(m){
-        var meta=MODEL_META[m.model_name]||{label:'',tagClass:'',accent:'var(--orange)',desc:m.tags||''};
-        /* 价格 — 后端已是人民币单位，1 ratio = ¥0.002/1K tokens */
-        var BASE_CNY_PER_K=0.002;
-        var inputCNY=m.model_ratio*groupRatio*BASE_CNY_PER_K*1000;
-        var outputCNY=m.model_ratio*(m.completion_ratio||1)*groupRatio*BASE_CNY_PER_K*1000;
-
-        return '<div class="model-card" style="--accent:'+meta.accent+'">'+
-          '<div class="mc-head">'+
-            '<div class="mc-name">'+m.model_name+'</div>'+
-            (meta.label?'<span class="mc-tag '+meta.tagClass+'">'+meta.label+'</span>':'')+
-          '</div>'+
-          '<div class="mc-desc">'+meta.desc+'</div>'+
-          '<div class="mc-prices">'+
-            '<div class="mc-price">'+
-              '<span class="mc-price-lbl">INPUT · 输入</span>'+
-              '<span class="mc-price-val">¥ '+inputCNY.toFixed(2)+'</span>'+
-              '<span class="mc-price-sub">/ 百万 tokens</span>'+
-            '</div>'+
-            '<div class="mc-price">'+
-              '<span class="mc-price-lbl">OUTPUT · 输出</span>'+
-              '<span class="mc-price-val">¥ '+outputCNY.toFixed(2)+'</span>'+
-              '<span class="mc-price-sub">/ 百万 tokens</span>'+
-            '</div>'+
-          '</div>'+
-          '<div class="mc-foot">'+
-            '<code class="mc-id">'+m.model_name+'</code>'+
-            '<button class="mc-copy" onclick="copyModelId(\''+m.model_name+'\',this)">复制 ID</button>'+
-          '</div>'+
-        '</div>';
-      }).join('');
-
-      grid.innerHTML=cards||'<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--dim);font-size:13px;">暂无可用模型</div>';
+      var gr=(d&&d.group_ratio&&d.group_ratio['default'])||1;
+      if(!data.length){
+        ct.innerHTML='<div style="padding:24px;text-align:center;color:var(--dim);font-size:13px;">暂无可用模型</div>';
+        return;
+      }
+      var groups={};
+      data.forEach(function(m){
+        var v=getVendor(m.model_name);
+        if(!groups[v.name]) groups[v.name]={vendor:v,models:[]};
+        groups[v.name].models.push(m);
+      });
+      var html='';
+      Object.keys(groups).forEach(function(k){
+        var g=groups[k];
+        html+='<div class="sec-hd"><span class="sec-hd-t">'+g.vendor.name+' · '+g.vendor.sub+'</span></div>';
+        html+='<div class="model-grid">';
+        g.models.forEach(function(m){ html+=renderModelCard(m,gr); });
+        html+='</div>';
+      });
+      ct.innerHTML=html;
     })
     .catch(function(){
-      grid.innerHTML='<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--red);font-size:13px;">加载失败</div>';
+      ct.innerHTML='<div style="padding:24px;text-align:center;color:var(--red);font-size:13px;">加载失败</div>';
     });
 }
 
@@ -2993,7 +3041,7 @@ if(CUR_USER_ID){
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.success!==false&&d.data&&d.data.username)
-        d.data.role===100?enterAdmin(d.data):enterUser(d.data);
+        d.data.role==='admin'?enterAdmin(d.data):enterUser(d.data);
       else clearCurUser();
     }).catch(function(){clearCurUser();});
 }
