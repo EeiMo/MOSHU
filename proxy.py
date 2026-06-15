@@ -161,7 +161,7 @@ def _handle_sync(upstream_url, headers, body, timeout,
     ct = usage.get('completion_tokens', 0)
 
     # 计费
-    quota_cost = calc_quota(pt, ct, pricing['model_ratio'], pricing['completion_ratio'])
+    quota_cost = calc_quota(pt, ct, pricing['input_price'], pricing['output_price'])
     deduct_user(user_id, quota_cost)
     deduct_token(token_id, quota_cost)
 
@@ -218,7 +218,7 @@ def _handle_stream(upstream_url, headers, body, timeout,
                 # 粗估：中文约 2 字符/token，英文约 4 字符/token
                 ct = len(total_content) // 2 if total_content else 0
 
-            quota_cost = calc_quota(pt, ct, pricing['model_ratio'], pricing['completion_ratio'])
+            quota_cost = calc_quota(pt, ct, pricing['input_price'], pricing['output_price'])
             deduct_user(user_id, quota_cost)
             deduct_token(token_id, quota_cost)
             _log_request(user_id, token_id, model_name, channel_id, pt, ct, quota_cost,

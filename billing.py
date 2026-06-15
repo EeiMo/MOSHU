@@ -2,9 +2,12 @@
 from db import query, execute
 from config import QUOTA_PER_UNIT, USD_EXCHANGE_RATE
 
-def calc_quota(prompt_tokens, completion_tokens, model_ratio, completion_ratio):
-    """计算一次请求消耗的 quota 内部单位"""
-    return int(prompt_tokens * model_ratio + completion_tokens * model_ratio * completion_ratio)
+def calc_quota(prompt_tokens, completion_tokens, input_price, output_price):
+    """根据输入/输出价格计算 quota 内部单位
+    input_price / output_price: CNY per million tokens
+    """
+    cost_cny = prompt_tokens / 1_000_000 * input_price + completion_tokens / 1_000_000 * output_price
+    return int(cost_cny / USD_EXCHANGE_RATE * QUOTA_PER_UNIT)
 
 def quota_to_cny(quota):
     """quota → 人民币"""
@@ -50,7 +53,7 @@ def get_pricing(model_name):
     p = query("SELECT * FROM pricing WHERE model_name=? AND enabled=1", (model_name,), one=True)
     if p:
         return p
-    return {'model_name': model_name, 'model_ratio': 1.0, 'completion_ratio': 1.0}
+    return {'model_name': model_name, 'input_price': 2.0, 'output_price': 2.0}
 
 def find_channel(model_name):
     """找到支持该模型的可用渠道（按优先级、权重）"""

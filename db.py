@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA journal_mode=DELETE")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
@@ -32,7 +32,12 @@ def execute(sql, args=()):
 
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH) or '.', exist_ok=True)
-    conn = get_db()
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    existing = {r[0] for r in cur.fetchall()}
+    if 'users' in existing and 'pricing' in existing:
+        conn.close()
+        return
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS users (
         id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,8 +78,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS pricing (
         id               INTEGER PRIMARY KEY AUTOINCREMENT,
         model_name       TEXT UNIQUE NOT NULL,
-        model_ratio      REAL DEFAULT 1,
-        completion_ratio REAL DEFAULT 1,
+        input_price      REAL DEFAULT 0,
+        output_price     REAL DEFAULT 0,
         enabled          INTEGER DEFAULT 1,
         created_at       REAL
     );

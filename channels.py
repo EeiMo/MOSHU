@@ -82,7 +82,7 @@ def delete_channel(cid):
 @channels.route('/api/pricing', methods=['GET'])
 def get_pricing():
     """公开接口：获取所有模型定价"""
-    items = query("SELECT * FROM pricing WHERE enabled=1 ORDER BY model_name")
+    items = query("SELECT model_name, input_price, output_price FROM pricing WHERE enabled=1 ORDER BY model_name")
     return jsonify({
         'success': True,
         'data': items,
@@ -98,16 +98,19 @@ def set_pricing():
     if not model_name:
         return jsonify({'success': False, 'message': '模型名不能为空'}), 400
 
+    input_price = float(d.get('input_price', 0))
+    output_price = float(d.get('output_price', 0))
+
     existing = query("SELECT id FROM pricing WHERE model_name=?", (model_name,), one=True)
     if existing:
         execute(
-            "UPDATE pricing SET model_ratio=?, completion_ratio=?, enabled=? WHERE model_name=?",
-            (d.get('model_ratio', 1), d.get('completion_ratio', 1), d.get('enabled', 1), model_name)
+            "UPDATE pricing SET input_price=?, output_price=?, enabled=? WHERE model_name=?",
+            (input_price, output_price, d.get('enabled', 1), model_name)
         )
     else:
         execute(
-            "INSERT INTO pricing (model_name, model_ratio, completion_ratio, enabled, created_at) VALUES (?,?,?,?,?)",
-            (model_name, d.get('model_ratio', 1), d.get('completion_ratio', 1), 1, time.time())
+            "INSERT INTO pricing (model_name, input_price, output_price, enabled, created_at) VALUES (?,?,?,?,?)",
+            (model_name, input_price, output_price, 1, time.time())
         )
     return jsonify({'success': True, 'message': '定价已更新'})
 
@@ -116,3 +119,27 @@ def set_pricing():
 def delete_pricing(model_name):
     execute("DELETE FROM pricing WHERE model_name=?", (model_name,))
     return jsonify({'success': True, 'message': '已删除'})
+
+@channels.route('/api/channel/fetch_models', methods=['POST'])
+@admin_required
+def fetch_models():
+    """代理：用渠道的 base_url + api_key 拉取 /v1/models"""
+    import requests as http
+    d = request.get_json() or {}
+    base_url = (d.get('base_url') or '').strip().rstrip('/')
+    api_key = (d.get('api_key') or '').strip()
+    if not base_url or not api_key:
+        return jsonify({'success': False, 'message': '请先填写 Base URL 和 API Key'}), 400
+
+    try:
+        url = base_url + '/models'
+        resp = http.get(url, headers={'Authorization': f'Bearer {api_key}'}, timeout=15)
+        if resp.status_code != 200:
+            return jsonify({'success': False, 'message': f'上游返回 {resp.status_code}'}), 502
+        data = resp.json()
+        models = [m['id'] for m in data.get('data', []) if m.get('id')]
+        return jsonify({'success': True, 'data': {'models': models}})
+    except http.exceptions.Timeout:
+        return jsonify({'success': False, 'message': '请求超时'}), 504
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)[:200]}), 500

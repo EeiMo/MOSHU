@@ -310,6 +310,14 @@ body.reg #lgLoginBtn{display:none;}
 .sec-hd-a:hover{color:var(--orange);}
 
 /* log filter bar */
+.ad-price-inp{
+  background:transparent;border:1px solid transparent;color:var(--paper);
+  font-family:inherit;font-size:12px;width:72px;padding:2px 4px;
+  border-radius:4px;text-align:right;transition:border-color .2s;
+}
+.ad-price-inp:hover{border-color:var(--border);}
+.ad-price-inp:focus{outline:none;border-color:var(--orange);background:rgba(20,20,18,.6);}
+
 .log-filter{
   display:flex;align-items:center;gap:12px;
   padding:10px 0 14px;margin-bottom:0;
@@ -1321,18 +1329,15 @@ body.reg #lgLoginBtn{display:none;}
         <span class="sb-mv" id="adMTk">—</span>
       </div>
       <div class="sb-rule"></div>
-      <div class="sb-cap">入口</div>
-      <a class="sb-a" href="/console/#/channel/edit" target="_blank">
+      <div class="sb-cap">操作</div>
+      <a class="sb-a" href="javascript:void(0)" onclick="toggleAdChForm()">
         <span class="sb-ic">Ch</span>添加渠道
       </a>
-      <a class="sb-a" href="/console/#/token" target="_blank">
-        <span class="sb-ic">Tk</span>管理令牌
+      <a class="sb-a" href="javascript:void(0)" onclick="toggleAdPrForm()">
+        <span class="sb-ic">Md</span>模型定价
       </a>
-      <a class="sb-a" href="/console/#/log" target="_blank">
-        <span class="sb-ic">Lg</span>请求日志
-      </a>
-      <a class="sb-a" href="/console/#/dashboard" target="_blank">
-        <span class="sb-ic">St</span>数据统计
+      <a class="sb-a" href="javascript:void(0)" onclick="document.getElementById('adTkName').focus()">
+        <span class="sb-ic">Tk</span>创建令牌
       </a>
       <div class="sb-rule"></div>
       <div class="sb-cap">端点</div>
@@ -1368,17 +1373,71 @@ body.reg #lgLoginBtn{display:none;}
       <div>
         <div class="sec-hd">
           <span class="sec-hd-t">渠道状态 · CHANNELS</span>
-          <a class="sec-hd-a" href="/console/#/channel" target="_blank">全部 →</a>
+          <a class="sec-hd-a" href="javascript:void(0)" onclick="toggleAdChForm()">+ 添加</a>
+        </div>
+        <div class="fbox" id="adChForm" style="display:none;">
+          <div class="f-row">
+            <div>
+              <label class="f-lbl">渠道名称</label>
+              <input class="f-inp" id="adChName" placeholder="DeepSeek">
+            </div>
+            <div>
+              <label class="f-lbl">Base URL</label>
+              <input class="f-inp" id="adChUrl" placeholder="https://api.deepseek.com/v1">
+            </div>
+          </div>
+          <div class="f-row">
+            <div style="flex:1">
+              <label class="f-lbl">API Key</label>
+              <input class="f-inp" id="adChKey" type="password" placeholder="sk-...">
+            </div>
+          </div>
+          <div class="f-row">
+            <div style="flex:1">
+              <label class="f-lbl">支持模型（逗号分隔）</label>
+              <input class="f-inp" id="adChModels" placeholder="deepseek-v4-flash, deepseek-v4-pro">
+            </div>
+            <button class="sec-hd-a" id="adChFetchBtn" style="font-size:12px;white-space:nowrap;padding:0 8px" onclick="adFetchModels()">一键拉取</button>
+            <button class="btn-main" onclick="adCreateChannel()">添加渠道</button>
+          </div>
+          <div class="f-msg" id="adChMsg"></div>
         </div>
         <table class="tbl">
-          <thead><tr><th>状态</th><th>名称</th><th>类型</th><th>时延</th></tr></thead>
+          <thead><tr><th>状态</th><th>名称</th><th>类型</th><th>模型</th></tr></thead>
           <tbody id="adChBody"><tr><td colspan="4" class="tbl-empty">加载中…</td></tr></tbody>
         </table>
       </div>
       <div>
         <div class="sec-hd">
+          <span class="sec-hd-t">模型定价 · PRICING</span>
+          <a class="sec-hd-a" href="javascript:void(0)" onclick="toggleAdPrForm()">+ 添加</a>
+        </div>
+        <div class="fbox" id="adPrForm" style="display:none;">
+          <div class="f-row">
+            <div>
+              <label class="f-lbl">模型名称</label>
+              <input class="f-inp" id="adPrName" placeholder="deepseek-v4-flash">
+            </div>
+            <div>
+              <label class="f-lbl">输入价格 (¥/百万tokens)</label>
+              <input class="f-inp" id="adPrInPrice" type="number" step="0.01" placeholder="0.12">
+            </div>
+            <div>
+              <label class="f-lbl">输出价格 (¥/百万tokens)</label>
+              <input class="f-inp" id="adPrOutPrice" type="number" step="0.01" placeholder="0.21">
+            </div>
+            <button class="btn-main" onclick="adCreatePricing()">添加</button>
+          </div>
+          <div class="f-msg" id="adPrMsg"></div>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>模型</th><th>输入价(¥/百万)</th><th>输出价(¥/百万)</th><th></th></tr></thead>
+          <tbody id="adPrBody"><tr><td colspan="6" class="tbl-empty">加载中…</td></tr></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="sec-hd">
           <span class="sec-hd-t">创建令牌 · NEW TOKEN</span>
-          <a class="sec-hd-a" href="/console/#/token" target="_blank">管理 →</a>
         </div>
         <div class="fbox">
           <div class="f-row">
@@ -1394,6 +1453,15 @@ body.reg #lgLoginBtn{display:none;}
           </div>
           <div class="f-hint">令牌默认不限额，可在后台设置用量限制。</div>
         </div>
+      </div>
+      <div>
+        <div class="sec-hd">
+          <span class="sec-hd-t">用户管理 · USERS</span>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>余额(CNY)</th><th>已用(CNY)</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="adUsBody"><tr><td colspan="7" class="tbl-empty">加载中…</td></tr></tbody>
+        </table>
       </div>
       <div>
         <div class="sec-hd"><span class="sec-hd-t">事件日志 · LOG</span></div>
@@ -1944,6 +2012,39 @@ function api(url, opts){
   opts.headers = authHeaders(opts.headers);
   return fetch(url, opts);
 }
+
+/* 全局拦截：任何 fetch 返回 403 + 禁用 → 踢下线 */
+(function(){
+  var _origFetch = window.fetch;
+  window.fetch = function(){
+    return _origFetch.apply(this, arguments).then(function(r){
+      if(r.status === 403 && !r._bannedChecked){
+        r._bannedChecked = true;
+        var cloned = r.clone();
+        cloned.text().then(function(txt){
+          try{
+            var d = JSON.parse(txt);
+            if(d && d.message && d.message.indexOf('禁用') !== -1){
+              kickBanned();
+            }
+          }catch(e){}
+        });
+      }
+      return r;
+    });
+  };
+})();
+
+function kickBanned(){
+  if(document.getElementById('viewLogin').classList.contains('active')) return;
+  clearCurUser();
+  showView('viewLogin');
+  var err = document.getElementById('lgErr');
+  err.textContent = '该账户已被管理员禁用';
+  err.classList.add('show');
+  document.getElementById('lgUser').value = '';
+  document.getElementById('lgPass').value = '';
+}
 function setCurUser(id){
   CUR_USER_ID = id;
   try{ localStorage.setItem('moshu_uid', String(id)); }catch(e){}
@@ -2124,8 +2225,13 @@ function enterAdmin(user){
   setInterval(loadAdData,30000);
 }
 
+function toggleAdChForm(){
+  var f=document.getElementById('adChForm');
+  f.style.display=f.style.display==='none'?'flex':'none';
+  if(f.style.display!=='none') f.style.flexDirection='column',f.style.gap='12px';
+}
 function loadAdData(){
-  api('/api/channel/?p=1&page_size=20',{credentials:'include'})
+  api('/api/channel/',{credentials:'include'})
     .then(function(r){return r.json();})
     .then(function(d){
       var list=(d.data&&d.data.items)?d.data.items:(Array.isArray(d.data)?d.data:[]);
@@ -2134,15 +2240,35 @@ function loadAdData(){
       countup(document.getElementById('adKCh'),act);
       document.getElementById('adChBody').innerHTML=!list.length
         ?'<tr><td colspan="4" class="tbl-empty">暂无渠道</td></tr>'
-        :list.slice(0,8).map(function(ch){
+        :list.map(function(ch){
           var ok=ch.status===1;
+          var models=[];
+          try{models=JSON.parse(ch.models||'[]');}catch(e){}
           return '<tr><td class="mn '+(ok?'ok':'warn')+'">'+(ok?'● OK':'● OFF')+'</td>'+
             '<td class="nm">'+ch.name+'</td>'+
             '<td class="mn">'+(TYPES[ch.type]||'T'+ch.type)+'</td>'+
-            '<td class="mn">'+(ch.response_time?Math.round(ch.response_time)+'ms':'—')+'</td></tr>';
+            '<td class="mn" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+models.join(', ')+'</td></tr>';
         }).join('');
       addLog('ok','已同步 '+list.length+' 个渠道');
     }).catch(function(){addLog('err','渠道加载失败');});
+
+  /* 加载定价 */
+  fetch('/api/pricing').then(function(r){return r.json();}).then(function(d){
+    var list=d&&d.data||[];
+    document.getElementById('adPrBody').innerHTML=!list.length
+      ?'<tr><td colspan="4" class="tbl-empty">暂无模型定价</td></tr>'
+      :list.map(function(p,i){
+        return '<tr id="pr_'+i+'">'+
+          '<td class="nm">'+p.model_name+'</td>'+
+          '<td class="mn hi"><input class="ad-price-inp" id="prIn_'+i+'" data-mn="'+p.model_name+'" value="'+(p.input_price||0).toFixed(4)+'" disabled></td>'+
+          '<td class="mn hi"><input class="ad-price-inp" id="prOut_'+i+'" data-mn="'+p.model_name+'" value="'+(p.output_price||0).toFixed(4)+'" disabled></td>'+
+          '<td class="mn" style="white-space:nowrap">'+
+            '<button class="sec-hd-a" style="font-size:11px" id="prEditBtn_'+i+'" onclick="adEditPricing('+i+')">编辑</button>'+
+            '<button class="sec-hd-a" style="font-size:11px;color:var(--red);margin-left:6px" onclick="adDelPricing(\''+p.model_name+'\')">删除</button>'+
+          '</td>'+
+          '</tr>';
+      }).join('');
+  }).catch(function(){document.getElementById('adPrBody').innerHTML='<tr><td colspan="4" class="tbl-empty">加载失败</td></tr>';});
 
   api('/api/token/?p=1&page_size=1',{credentials:'include'})
     .then(function(r){return r.json();})
@@ -2151,6 +2277,252 @@ function loadAdData(){
       document.getElementById('adMTk').textContent=t;
       countup(document.getElementById('adKTk'),t);
     }).catch(function(){});
+
+  /* 加载用户列表 */
+  api('/api/user/',{credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var list=(d.data&&d.data.items)||[];
+      var BK=0.002;var CNY=SYS_CFG.usd_exchange_rate||7.3;
+      document.getElementById('adUsBody').innerHTML=!list.length
+        ?'<tr><td colspan="7" class="tbl-empty">暂无用户</td></tr>'
+        :list.map(function(u){
+          var bal=(u.quota||0)/500000*CNY;
+          var used=(u.used_quota||0)/500000*CNY;
+          var ok=u.status===1;
+          return '<tr id="us_'+u.id+'">'+
+            '<td class="mn">'+u.id+'</td>'+
+            '<td class="nm">'+u.username+'</td>'+
+            '<td class="mn">'+(u.role==='admin'?'管理员':'用户')+'</td>'+
+            '<td class="mn hi">¥ '+bal.toFixed(2)+'</td>'+
+            '<td class="mn">'+used.toFixed(2)+'</td>'+
+            '<td class="mn '+(ok?'ok':'warn')+'">'+(ok?'启用':'禁用')+'</td>'+
+            '<td class="mn" style="white-space:nowrap">'+
+              '<button class="sec-hd-a" style="font-size:11px;color:var(--green)" onclick="adBalAdjust('+u.id+',1)">充值</button>'+
+              '<button class="sec-hd-a" style="font-size:11px;color:var(--orange);margin-left:4px" onclick="adBalAdjust('+u.id+',-1)">扣款</button>'+
+              '<button class="sec-hd-a" style="font-size:11px;margin-left:4px" onclick="adBalSet('+u.id+')">设为</button>'+
+              '<button class="sec-hd-a" style="font-size:11px;margin-left:4px;color:'+(ok?'var(--red)':'var(--green)')+'" onclick="adToggleUser('+u.id+','+u.status+')">'+(ok?'禁用':'启用')+'</button>'+
+              '<button class="sec-hd-a" style="font-size:11px;margin-left:4px;color:#e04040" onclick="adDelUser('+u.id+',\''+u.username+'\')">注销</button>'+
+            '</td>'+
+            '</tr>';
+        }).join('');
+    }).catch(function(){document.getElementById('adUsBody').innerHTML='<tr><td colspan="7" class="tbl-empty">加载失败</td></tr>';});
+}
+
+function toggleAdPrForm(){
+  var f=document.getElementById('adPrForm');
+  f.style.display=f.style.display==='none'?'flex':'none';
+  if(f.style.display!=='none') f.style.flexDirection='column',f.style.gap='12px';
+}
+function adCreatePricing(){
+  var mn=document.getElementById('adPrName').value.trim();
+  var ip=parseFloat(document.getElementById('adPrInPrice').value)||0;
+  var op=parseFloat(document.getElementById('adPrOutPrice').value)||0;
+  var msg=document.getElementById('adPrMsg');
+  msg.style.display='none';
+  if(!mn){msg.textContent='模型名称不能为空';msg.style.color='var(--red)';msg.style.display='block';return;}
+  if(!ip&&!op){msg.textContent='价格不能全为 0';msg.style.color='var(--red)';msg.style.display='block';return;}
+  api('/api/pricing',{
+    method:'POST',credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model_name:mn,input_price:ip,output_price:op})
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      addLog('ok','定价 '+mn+' 已添加');
+      document.getElementById('adPrName').value='';
+      document.getElementById('adPrInPrice').value='';
+      document.getElementById('adPrOutPrice').value='';
+      document.getElementById('adPrForm').style.display='none';
+      loadAdData();
+    } else {
+      msg.textContent=d.message||'添加失败';msg.style.color='var(--red)';msg.style.display='block';
+    }
+  }).catch(function(){addLog('err','定价添加请求失败');});
+}
+var _editingRow=-1;
+function adEditPricing(idx){
+  if(_editingRow>=0){
+    var prevIn=document.getElementById('prIn_'+_editingRow);
+    var prevOut=document.getElementById('prOut_'+_editingRow);
+    var prevBtn=document.getElementById('prEditBtn_'+_editingRow);
+    if(prevIn){prevIn.disabled=true;prevIn.style.borderColor='transparent';}
+    if(prevOut){prevOut.disabled=true;prevOut.style.borderColor='transparent';}
+    if(prevBtn)prevBtn.textContent='编辑';
+  }
+  if(_editingRow===idx){_editingRow=-1;return;}
+  var inp=document.getElementById('prIn_'+idx);
+  var out=document.getElementById('prOut_'+idx);
+  var btn=document.getElementById('prEditBtn_'+idx);
+  inp.disabled=false;out.disabled=false;
+  inp.style.borderColor='var(--orange)';out.style.borderColor='var(--orange)';
+  inp.focus();
+  btn.textContent='保存';
+  btn.onclick=function(){adSavePricing(idx);};
+  _editingRow=idx;
+}
+function adSavePricing(idx){
+  var inp=document.getElementById('prIn_'+idx);
+  var out=document.getElementById('prOut_'+idx);
+  var mn=inp.dataset.mn;
+  var newIn=parseFloat(inp.value);
+  var newOut=parseFloat(out.value);
+  if(isNaN(newIn)||isNaN(newOut)||newIn<0||newOut<0){addLog('err','价格不能为负');return;}
+  api('/api/pricing',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model_name:mn,input_price:newIn,output_price:newOut})
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.success)addLog('ok',mn+' 定价已更新');
+    else addLog('err','更新失败：'+(d.message||''));
+    _editingRow=-1;
+    loadAdData();
+  }).catch(function(){addLog('err','保存请求失败');});
+}
+function adDelPricing(mn){
+  if(!confirm('确定删除模型 '+mn+' 的定价？'))return;
+  api('/api/pricing/'+mn,{method:'DELETE',credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){addLog('ok','定价 '+mn+' 已删除');loadAdData();}
+    else addLog('err','删除失败：'+(d.message||''));
+  }).catch(function(){addLog('err','定价删除请求失败');});
+}
+
+/* ── 用户管理 ── */
+function adBalAdjust(uid,direction){
+  var label=direction>0?'充值':'扣款';
+  var amount=prompt(label+'金额（CNY）：');
+  if(amount===null)return;
+  amount=parseFloat(amount);
+  if(isNaN(amount)||amount<=0){addLog('err','请输入正数');return;}
+  /* 先获取当前余额，再加减 */
+  api('/api/user/',{credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var list=(d.data&&d.data.items)||[];
+    var user=list.find(function(u){return u.id===uid;});
+    if(!user){addLog('err','用户不存在');return;}
+    var curBal=(user.quota||0)/500000*(SYS_CFG.usd_exchange_rate||7.3);
+    var newBal=direction>0?curBal+amount:curBal-amount;
+    if(newBal<0)newBal=0;
+    var newQuota=Math.round(newBal/(SYS_CFG.usd_exchange_rate||7.3)*500000);
+    return api('/api/user/'+uid,{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({quota:newQuota})
+    });
+  }).then(function(r){if(r)return r.json();})
+  .then(function(d){
+    if(d&&d.success)addLog('ok',label+'成功');
+    else if(d)addLog('err','操作失败：'+(d.message||''));
+    loadAdData();
+  }).catch(function(){addLog('err','操作请求失败');});
+}
+function adBalSet(uid){
+  var amount=prompt('设置余额（CNY），直接设置为新值：');
+  if(amount===null)return;
+  var newBal=parseFloat(amount);
+  if(isNaN(newBal)||newBal<0){addLog('err','请输入非负数');return;}
+  var newQuota=Math.round(newBal/(SYS_CFG.usd_exchange_rate||7.3)*500000);
+  api('/api/user/'+uid,{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({quota:newQuota})
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success)addLog('ok','余额已设为 ¥'+newBal.toFixed(2));
+    else addLog('err','操作失败：'+(d.message||''));
+    loadAdData();
+  }).catch(function(){addLog('err','操作请求失败');});
+}
+function adToggleUser(uid,curStatus){
+  var newStatus=curStatus===1?2:1;
+  var action=newStatus===1?'启用':'禁用';
+  if(!confirm('确定'+action+'该用户？'))return;
+  api('/api/user/'+uid,{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status:newStatus})
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success)addLog('ok','用户已'+action);
+    else addLog('err','操作失败：'+(d.message||''));
+    loadAdData();
+  }).catch(function(){addLog('err','操作请求失败');});
+}
+function adDelUser(uid,username){
+  if(!confirm('确定注销用户「'+username+'」？该操作将删除该用户及其所有令牌，不可恢复！'))return;
+  api('/api/user/'+uid,{method:'DELETE',credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success)addLog('ok','用户「'+username+'」已注销');
+    else addLog('err','注销失败：'+(d.message||''));
+    loadAdData();
+  }).catch(function(){addLog('err','注销请求失败');});
+}
+
+function adFetchModels(){
+  var url=document.getElementById('adChUrl').value.trim();
+  var key=document.getElementById('adChKey').value.trim();
+  var btn=document.getElementById('adChFetchBtn');
+  var msg=document.getElementById('adChMsg');
+  if(!url||!key){msg.textContent='请先填写 Base URL 和 API Key';msg.style.color='var(--red)';msg.style.display='block';return;}
+  btn.textContent='拉取中…';btn.disabled=true;
+  api('/api/channel/fetch_models',{
+    method:'POST',credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({base_url:url,api_key:key})
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    btn.textContent='一键拉取';btn.disabled=false;
+    if(d.success){
+      var models=d.data.models||[];
+      if(!models.length){msg.textContent='该渠道无可用模型';msg.style.color='var(--mid)';msg.style.display='block';return;}
+      document.getElementById('adChModels').value=models.join(', ');
+      msg.textContent='已拉取 '+models.length+' 个模型';msg.style.color='var(--green)';msg.style.display='block';
+      addLog('ok','从渠道拉取 '+models.length+' 个模型');
+    } else {
+      msg.textContent=d.message||'拉取失败';msg.style.color='var(--red)';msg.style.display='block';
+      addLog('err','模型拉取失败：'+(d.message||''));
+    }
+  }).catch(function(){btn.textContent='一键拉取';btn.disabled=false;addLog('err','模型拉取请求失败');});
+}
+
+function adCreateChannel(){
+  var name=document.getElementById('adChName').value.trim();
+  var url=document.getElementById('adChUrl').value.trim();
+  var key=document.getElementById('adChKey').value.trim();
+  var modelsStr=document.getElementById('adChModels').value.trim();
+  var msg=document.getElementById('adChMsg');
+  msg.style.display='none';
+  if(!name||!url||!key){msg.textContent='名称、地址、密钥不能为空';msg.style.color='var(--red)';msg.style.display='block';return;}
+  var models=modelsStr?modelsStr.split(',').map(function(m){return m.trim();}).filter(Boolean):[];
+  api('/api/channel/',{
+    method:'POST',credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name:name,base_url:url,api_key:key,models:models,type:1})
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      addLog('ok','渠道 '+name+' 已创建');
+      /* 自动把新模型添加到定价表（不覆盖已有的）*/
+      if(models.length){
+        var addNext=function(i){
+          if(i>=models.length){loadAdData();return;}
+          var mn=models[i];
+          api('/api/pricing',{
+            method:'POST',credentials:'include',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({model_name:mn,input_price:0,output_price:0})
+          }).then(function(){addNext(i+1);}).catch(function(){addNext(i+1);});
+        };
+        addNext(0);
+        addLog('ok','已自动添加 '+models.length+' 个模型定价（默认倍率，请按需编辑）');
+      }
+      document.getElementById('adChName').value='';
+      document.getElementById('adChUrl').value='';
+      document.getElementById('adChKey').value='';
+      document.getElementById('adChModels').value='';
+      document.getElementById('adChForm').style.display='none';
+      loadAdData();
+    } else {
+      addLog('err','创建失败：'+(d.message||''));
+      msg.textContent=d.message||'创建失败';msg.style.color='var(--red)';msg.style.display='block';
+    }
+  }).catch(function(){addLog('err','渠道创建请求失败');});
 }
 
 function adCreateToken(){
@@ -2586,10 +2958,10 @@ function getVendor(mn){
 }
 function autoDesc(m){
   if(m.tags) return m.tags;
-  var r=m.model_ratio||0;
-  if(r<=0.01) return '轻量快速模型，低延迟低成本，适合高频简单任务。';
-  if(r<=0.5) return '通用对话模型，兼顾性能与成本，适合日常使用。';
-  if(r<=2) return '高性能模型，适合复杂推理、代码生成等任务。';
+  var p=m.input_price||0;
+  if(p<=0.1) return '轻量快速模型，低延迟低成本，适合高频简单任务。';
+  if(p<=1) return '通用对话模型，兼顾性能与成本，适合日常使用。';
+  if(p<=5) return '高性能模型，适合复杂推理、代码生成等任务。';
   return '旗舰推理模型，支持长链路思考，适合研究、数学等高难度场景。';
 }
 function autoLabel(m){
@@ -2598,16 +2970,15 @@ function autoLabel(m){
   if(/pro|max|ultra|heavy/i.test(n)) return {label:'PRO',tagClass:'',accent:'var(--orange)'};
   return {label:'',tagClass:'',accent:'var(--orange)'};
 }
-function renderModelCard(m,gr){
+function renderModelCard(m){
   var meta=MODEL_META[m.model_name];
   var al=autoLabel(m);
   var label=meta?meta.label:al.label;
   var tagClass=meta?meta.tagClass:al.tagClass;
   var accent=meta?meta.accent:al.accent;
   var desc=meta?meta.desc:autoDesc(m);
-  var BK=0.002;
-  var ic=m.model_ratio*gr*BK*1000;
-  var oc=m.model_ratio*(m.completion_ratio||1)*gr*BK*1000;
+  var ip=(m.input_price||0).toFixed(2);
+  var op=(m.output_price||0).toFixed(2);
   return '<div class="model-card" style="--accent:'+accent+'">'+
     '<div class="mc-head">'+
       '<div class="mc-name">'+m.model_name+'</div>'+
@@ -2617,12 +2988,12 @@ function renderModelCard(m,gr){
     '<div class="mc-prices">'+
       '<div class="mc-price">'+
         '<span class="mc-price-lbl">INPUT · 输入</span>'+
-        '<span class="mc-price-val">¥ '+ic.toFixed(2)+'</span>'+
+        '<span class="mc-price-val">¥ '+ip+'</span>'+
         '<span class="mc-price-sub">/ 百万 tokens</span>'+
       '</div>'+
       '<div class="mc-price">'+
         '<span class="mc-price-lbl">OUTPUT · 输出</span>'+
-        '<span class="mc-price-val">¥ '+oc.toFixed(2)+'</span>'+
+        '<span class="mc-price-val">¥ '+op+'</span>'+
         '<span class="mc-price-sub">/ 百万 tokens</span>'+
       '</div>'+
     '</div>'+
@@ -2641,7 +3012,6 @@ function loadUModels(){
     .then(function(r){return r.json();})
     .then(function(d){
       var data=d&&d.data||[];
-      var gr=(d&&d.group_ratio&&d.group_ratio['default'])||1;
       if(!data.length){
         ct.innerHTML='<div style="padding:24px;text-align:center;color:var(--dim);font-size:13px;">暂无可用模型</div>';
         return;
@@ -2657,7 +3027,7 @@ function loadUModels(){
         var g=groups[k];
         html+='<div class="sec-hd"><span class="sec-hd-t">'+g.vendor.name+' · '+g.vendor.sub+'</span></div>';
         html+='<div class="model-grid">';
-        g.models.forEach(function(m){ html+=renderModelCard(m,gr); });
+        g.models.forEach(function(m){ html+=renderModelCard(m); });
         html+='</div>';
       });
       ct.innerHTML=html;

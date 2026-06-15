@@ -2,7 +2,7 @@
 import os
 
 # ── 数据库 ──
-DB_PATH = os.environ.get('MOSHU_DB', 'data/moshu.db')
+DB_PATH = os.environ.get('MOSHU_DB', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'moshu.db'))
 
 # ── JWT ──
 JWT_SECRET = os.environ.get('JWT_SECRET', 'moshu-change-me-in-production-2026-eeimoo')
