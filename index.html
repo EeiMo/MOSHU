@@ -318,6 +318,25 @@ body.reg #lgLoginBtn{display:none;}
 .ad-price-inp:hover{border-color:var(--border);}
 .ad-price-inp:focus{outline:none;border-color:var(--orange);background:rgba(20,20,18,.6);}
 
+/* pricing channel tabs */
+.pr-tabs{
+  display:flex;gap:0;margin-bottom:1px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.pr-tabs::-webkit-scrollbar{height:0;}
+.pr-tab{
+  padding:9px 16px;font-size:11px;font-weight:600;letter-spacing:.08em;
+  color:var(--dim);cursor:pointer;white-space:nowrap;
+  border:1px solid transparent;border-bottom:none;
+  background:rgba(10,10,8,.6);
+  transition:color .15s,background .15s,border-color .15s;
+}
+.pr-tab:hover{color:var(--mid);background:rgba(16,14,12,.8);}
+.pr-tab.active{
+  color:var(--paper);background:rgba(10,10,8,.85);
+  border-color:var(--border2);border-bottom-color:transparent;
+}
+
 .log-filter{
   display:flex;align-items:center;gap:12px;
   padding:10px 0 14px;margin-bottom:0;
@@ -337,6 +356,145 @@ body.reg #lgLoginBtn{display:none;}
 .lf-label{
   font-size:10px;font-weight:600;letter-spacing:.15em;color:var(--dim);
 }
+
+/* channel cards */
+.ch-cards{display:flex;flex-direction:column;gap:1px;background:var(--border2);}
+.ch-card{
+  background:rgba(10,10,8,.85);
+  padding:12px 16px;display:flex;align-items:center;gap:12px;
+  transition:background .15s;
+}
+.ch-card:hover{background:rgba(16,14,12,.92);}
+.ch-dot{
+  flex:0 0 8px;width:8px;height:8px;border-radius:50%;
+  transition:background .3s,box-shadow .3s;
+}
+.ch-dot.on{background:var(--green);box-shadow:0 0 6px rgba(106,154,90,.4);}
+.ch-dot.off{background:var(--dim);box-shadow:none;}
+.ch-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px;overflow:hidden;}
+.ch-name{font-size:13px;font-weight:600;color:var(--paper);white-space:nowrap;flex-shrink:0;}
+.ch-url{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;min-width:0;max-width:220px;}
+.ch-models{display:flex;align-items:center;gap:4px;overflow:hidden;flex-shrink:1;min-width:0;}
+.ch-tag{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:2px 7px;border-radius:3px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border2);
+  color:var(--mid);white-space:nowrap;transition:color .15s;
+}
+.ch-tag:hover{color:var(--paper);}
+.ch-more{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:2px 7px;border-radius:3px;
+  background:rgba(217,119,87,.08);border:1px solid rgba(217,119,87,.2);
+  color:var(--orange);cursor:pointer;white-space:nowrap;transition:background .15s;
+}
+.ch-more:hover{background:rgba(217,119,87,.15);}
+.ch-health{font-size:11px;font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;transition:opacity .6s;}
+.ch-health.ok{color:var(--green);}
+.ch-health.fail{color:var(--red);}
+.ch-health.loading{color:var(--dim);}
+.ch-health.fade{opacity:0;}
+.ch-acts{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+
+/* channel checkbox & batch bar */
+.ch-ck{
+  flex:0 0 16px;width:16px;height:16px;border-radius:3px;
+  border:1.5px solid var(--border);background:transparent;
+  cursor:pointer;appearance:none;-webkit-appearance:none;
+  transition:background .15s,border-color .15s;
+  position:relative;
+}
+.ch-ck:checked{background:var(--orange);border-color:var(--orange);}
+.ch-ck:checked::after{
+  content:'';position:absolute;left:4px;top:1px;
+  width:4px;height:8px;border:solid #000;border-width:0 2px 2px 0;
+  transform:rotate(45deg);
+}
+.ch-ck:focus-visible{outline:2px solid var(--orange);outline-offset:2px;}
+.ch-batch{
+  display:none;align-items:center;gap:10px;
+  padding:10px 16px;margin-bottom:2px;
+  background:rgba(217,119,87,.08);border:1px solid rgba(217,119,87,.18);border-radius:6px;
+  font-size:12px;color:var(--paper);
+  animation:panelRise .35s cubic-bezier(.16,.8,.24,1) both;
+}
+.ch-batch.show{display:flex;}
+.ch-batch-count{color:var(--orange);font-weight:600;font-family:'JetBrains Mono',monospace;}
+.ch-batch-btn{
+  background:transparent;border:1px solid var(--border);border-radius:4px;
+  color:var(--mid);font-size:11px;padding:5px 12px;cursor:pointer;
+  font-family:inherit;transition:color .15s,border-color .15s,background .15s;
+}
+.ch-batch-btn:hover{color:var(--paper);border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.04);}
+.ch-batch-btn.del:hover{color:var(--red);border-color:rgba(160,80,80,.3);}
+.ch-batch-cancel{
+  background:none;border:none;color:var(--dim);font-size:11px;
+  cursor:pointer;margin-left:auto;font-family:inherit;
+}
+.ch-batch-cancel:hover{color:var(--mid);}
+.ch-sel-all{
+  display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+  font-size:11px;color:var(--dim);font-family:inherit;background:none;border:none;
+  transition:color .15s;
+}
+.ch-sel-all:hover{color:var(--mid);}
+.ch-sel-all input{margin:0;}
+
+/* channel form - step layout */
+.chf{
+  background:linear-gradient(180deg,rgba(20,20,18,.6),rgba(8,8,6,.65));
+  border:1px solid var(--border2);border-radius:8px;
+  padding:24px;display:flex;flex-direction:column;gap:18px;
+  box-shadow:0 4px 24px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.03);
+  animation:panelRise .5s cubic-bezier(.16,.8,.24,1) both;
+}
+.chf-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:12px;border-bottom:1px solid var(--border2);
+}
+.chf-title{font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--paper);}
+.chf-close{
+  width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);
+  background:transparent;color:var(--dim);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:color .2s,border-color .2s,background .2s;
+}
+.chf-close:hover{color:var(--paper);border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.04);}
+.chf-step{display:flex;flex-direction:column;gap:8px;}
+.chf-step-lbl{
+  font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--dim);
+  display:flex;align-items:center;gap:8px;
+}
+.chf-step-lbl::after{content:'';flex:1;height:1px;background:var(--border2);}
+.chf-row{display:flex;gap:10px;align-items:flex-end;}
+.chf-row>.chf-field{flex:1;}
+.chf-field{display:flex;flex-direction:column;gap:6px;}
+.chf-lbl{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--dim);}
+.chf-inp{
+  width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:6px;color:var(--paper);
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  padding:10px 12px;outline:none;transition:border-color .2s,background .2s;
+}
+.chf-inp:focus{border-color:rgba(217,119,87,.4);background:rgba(255,255,255,.04);}
+.chf-inp::placeholder{color:var(--dim);}
+
+/* channel edit modal */
+.ch-modal{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  align-items:center;justify-content:center;
+}
+.ch-modal.show{display:flex;}
+.ch-modal-box{
+  width:520px;max-width:92vw;max-height:90vh;overflow-y:auto;
+  animation:panelRise .35s cubic-bezier(.16,.8,.24,1) both;
+}
+.chf-foot{display:flex;align-items:center;justify-content:space-between;padding-top:4px;}
+.chf-msg{font-size:12px;display:none;}
+.chf-msg.show{display:block;}
+.chf-acts{display:flex;gap:8px;}
 
 /* table */
 .tbl{width:100%;border-collapse:collapse;
@@ -1310,6 +1468,7 @@ body.reg #lgLoginBtn{display:none;}
       <div class="tb-dot"></div>
       <span class="tb-user" id="adName">—</span>
       <span class="tb-badge admin">管理员</span>
+      <a class="tb-logout" href="/console" target="_blank" style="text-decoration:none;margin-right:8px">后台</a>
       <button class="tb-logout" onclick="doLogout()">退出</button>
     </div>
   </header>
@@ -1373,39 +1532,65 @@ body.reg #lgLoginBtn{display:none;}
       <div>
         <div class="sec-hd">
           <span class="sec-hd-t">渠道状态 · CHANNELS</span>
-          <a class="sec-hd-a" href="javascript:void(0)" onclick="toggleAdChForm()">+ 添加</a>
+          <div style="display:flex;align-items:center;gap:14px">
+            <label class="ch-sel-all"><input type="checkbox" id="adChSelAll" onchange="adChSelAllChange(this.checked)"> 全选</label>
+            <a class="sec-hd-a" href="javascript:void(0)" onclick="toggleAdChForm()">+ 添加渠道</a>
+          </div>
         </div>
-        <div class="fbox" id="adChForm" style="display:none;">
-          <div class="f-row">
-            <div>
-              <label class="f-lbl">渠道名称</label>
-              <input class="f-inp" id="adChName" placeholder="DeepSeek">
-            </div>
-            <div>
-              <label class="f-lbl">Base URL</label>
-              <input class="f-inp" id="adChUrl" placeholder="https://api.deepseek.com/v1">
-            </div>
-          </div>
-          <div class="f-row">
-            <div style="flex:1">
-              <label class="f-lbl">API Key</label>
-              <input class="f-inp" id="adChKey" type="password" placeholder="sk-...">
-            </div>
-          </div>
-          <div class="f-row">
-            <div style="flex:1">
-              <label class="f-lbl">支持模型（逗号分隔）</label>
-              <input class="f-inp" id="adChModels" placeholder="deepseek-v4-flash, deepseek-v4-pro">
-            </div>
-            <button class="sec-hd-a" id="adChFetchBtn" style="font-size:12px;white-space:nowrap;padding:0 8px" onclick="adFetchModels()">一键拉取</button>
-            <button class="btn-main" onclick="adCreateChannel()">添加渠道</button>
-          </div>
-          <div class="f-msg" id="adChMsg"></div>
+        <div class="ch-batch" id="adChBatch">
+          <span>已选 <span class="ch-batch-count" id="adChSelCnt">0</span> 个渠道</span>
+          <button class="ch-batch-btn" onclick="adBatchFetch()">批量拉取</button>
+          <button class="ch-batch-btn" onclick="adBatchTest()">批量测试</button>
+          <button class="ch-batch-btn del" onclick="adBatchDel()">批量删除</button>
+          <button class="ch-batch-cancel" onclick="adChClearSel()">取消选择</button>
         </div>
-        <table class="tbl">
-          <thead><tr><th>状态</th><th>名称</th><th>类型</th><th>模型</th></tr></thead>
-          <tbody id="adChBody"><tr><td colspan="4" class="tbl-empty">加载中…</td></tr></tbody>
-        </table>
+        <div class="chf" id="adChForm" style="display:none;">
+          <div class="chf-head">
+            <span class="chf-title">添加渠道 · NEW CHANNEL</span>
+            <button class="chf-close" onclick="toggleAdChForm()">✕</button>
+          </div>
+          <div class="chf-step">
+            <div class="chf-step-lbl">① 基本信息</div>
+            <div class="chf-row">
+              <div class="chf-field">
+                <label class="chf-lbl">渠道名称</label>
+                <input class="chf-inp" id="adChName" placeholder="DeepSeek">
+              </div>
+              <div class="chf-field">
+                <label class="chf-lbl">Base URL</label>
+                <input class="chf-inp" id="adChUrl" placeholder="https://api.deepseek.com/v1">
+              </div>
+            </div>
+          </div>
+          <div class="chf-step">
+            <div class="chf-step-lbl">② 密钥</div>
+            <div class="chf-row">
+              <div class="chf-field">
+                <label class="chf-lbl">API Key</label>
+                <input class="chf-inp" id="adChKey" type="password" placeholder="sk-...">
+              </div>
+            </div>
+          </div>
+          <div class="chf-step">
+            <div class="chf-step-lbl">③ 模型配置</div>
+            <div class="chf-row">
+              <div class="chf-field">
+                <label class="chf-lbl">支持模型（分号分隔）</label>
+                <input class="chf-inp" id="adChModels" placeholder="deepseek-v4-flash, deepseek-v4-pro">
+              </div>
+              <button class="sec-hd-a" id="adChFetchBtn" style="font-size:12px;white-space:nowrap;padding:10px 14px;border:1px solid var(--border);border-radius:6px;margin-bottom:0" onclick="adFetchModels()">一键拉取</button>
+            </div>
+          </div>
+          <div class="chf-foot">
+            <div class="chf-msg" id="adChMsg"></div>
+            <div class="chf-acts">
+              <button class="btn-main" onclick="adCreateChannel()">添加渠道</button>
+            </div>
+          </div>
+        </div>
+        <div class="ch-cards" id="adChBody">
+          <div class="ch-empty-msg" style="padding:30px;text-align:center;color:var(--dim);font-size:12px">加载中…</div>
+        </div>
       </div>
       <div>
         <div class="sec-hd">
@@ -1426,12 +1611,22 @@ body.reg #lgLoginBtn{display:none;}
               <label class="f-lbl">输出价格 (¥/百万tokens)</label>
               <input class="f-inp" id="adPrOutPrice" type="number" step="0.01" placeholder="0.21">
             </div>
+            <div>
+              <label class="f-lbl">缓存价 (¥/百万tokens)</label>
+              <input class="f-inp" id="adPrCachePrice" type="number" step="0.01" placeholder="0.05">
+            </div>
             <button class="btn-main" onclick="adCreatePricing()">添加</button>
           </div>
           <div class="f-msg" id="adPrMsg"></div>
         </div>
+        <div class="pr-tabs" id="adPrTabs"></div>
+        <div class="ch-batch" id="adPrBatch">
+          <span>已选 <span class="ch-batch-count" id="adPrSelCnt">0</span> 个模型</span>
+          <button class="ch-batch-btn del" onclick="adBatchDelPricing()">批量删除</button>
+          <button class="ch-batch-cancel" onclick="adPrClearSel()">取消选择</button>
+        </div>
         <table class="tbl">
-          <thead><tr><th>模型</th><th>输入价(¥/百万)</th><th>输出价(¥/百万)</th><th></th></tr></thead>
+          <thead><tr><th style="width:30px"><input type="checkbox" class="ch-ck" id="adPrSelAll" onchange="adPrSelAllChange(this.checked)"></th><th>模型</th><th>输入价(¥/百万)</th><th>输出价(¥/百万)</th><th>缓存价(¥/百万)</th><th></th></tr></thead>
           <tbody id="adPrBody"><tr><td colspan="6" class="tbl-empty">加载中…</td></tr></tbody>
         </table>
       </div>
@@ -1459,7 +1654,7 @@ body.reg #lgLoginBtn{display:none;}
           <span class="sec-hd-t">用户管理 · USERS</span>
         </div>
         <table class="tbl">
-          <thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>余额(CNY)</th><th>已用(CNY)</th><th>状态</th><th>操作</th></tr></thead>
+          <thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>令牌</th><th>余额(CNY)</th><th>已用(CNY)</th><th>状态</th><th>操作</th></tr></thead>
           <tbody id="adUsBody"><tr><td colspan="7" class="tbl-empty">加载中…</td></tr></tbody>
         </table>
       </div>
@@ -1714,7 +1909,7 @@ body.reg #lgLoginBtn{display:none;}
         </select>
       </div>
       <table class="tbl">
-        <thead><tr><th>时间</th><th>模型</th><th>输入</th><th>输出</th><th>状态</th><th>消耗余额</th><th>耗时</th></tr></thead>
+        <thead><tr><th>时间</th><th>模型</th><th>命中/未命中</th><th>输出</th><th>状态</th><th>消耗余额</th><th>耗时</th></tr></thead>
         <tbody id="uLogBody"><tr><td colspan="7" class="tbl-empty">加载中…</td></tr></tbody>
       </table>
     </div>
@@ -2004,6 +2199,8 @@ try{
 function authHeaders(extra){
   var h = {};
   if(extra){ for(var k in extra) h[k] = extra[k]; }
+  // New API 需要 New-Api-User 头标识当前用户
+  if(CUR_USER_ID){ h['New-Api-User'] = String(CUR_USER_ID); }
   return h;
 }
 function api(url, opts){
@@ -2161,9 +2358,11 @@ function doLogin(){
       document.getElementById('lgErr').textContent=d.message||'登录失败';
       document.getElementById('lgErr').classList.add('show');return;
     }
-    fetch('/api/user/self',{credentials:'include'}).then(function(r2){return r2.json();}).then(function(u){
+    var uid=d.data&&d.data.id;
+    if(uid) setCurUser(uid);
+    fetch('/api/user/self',{credentials:'include',headers:{'New-Api-User':String(uid)}}).then(function(r2){return r2.json();}).then(function(u){
       if(!u.success||!u.data){document.getElementById('lgErr').textContent='获取用户信息失败';document.getElementById('lgErr').classList.add('show');return;}
-      u.data.role==='admin'?enterAdmin(u.data):enterUser(u.data);
+      (u.data.role>=10)?enterAdmin(u.data):enterUser(u.data);
     });
   }).catch(function(e){
     btn.disabled=false;btn.textContent='登 录';
@@ -2198,7 +2397,7 @@ function doRegister(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({username:un,password:pw})
     }).then(function(r){return r.json();})
-    .then(function(d2){if(!d2.success)return;fetch('/api/user/self',{credentials:'include'}).then(function(r3){return r3.json();}).then(function(u){if(u.success&&u.data)u.data.role==='admin'?enterAdmin(u.data):enterUser(u.data);});});
+    .then(function(d2){if(!d2.success)return;var rid=d2.data&&d2.data.id;if(rid)setCurUser(rid);fetch('/api/user/self',{credentials:'include',headers:{'New-Api-User':String(rid)}}).then(function(r3){return r3.json();}).then(function(u){if(u.success&&u.data)(u.data.role>=10)?enterAdmin(u.data):enterUser(u.data);});});
   }).catch(function(){btn.disabled=false;btn.textContent='注 册';});
 }
 
@@ -2227,8 +2426,12 @@ function enterAdmin(user){
 
 function toggleAdChForm(){
   var f=document.getElementById('adChForm');
-  f.style.display=f.style.display==='none'?'flex':'none';
-  if(f.style.display!=='none') f.style.flexDirection='column',f.style.gap='12px';
+  if(f.style.display==='none'){
+    f.style.display='flex';
+    f.querySelector('.chf-inp').focus();
+  } else {
+    f.style.display='none';
+  }
 }
 function loadAdData(){
   api('/api/channel/',{credentials:'include'})
@@ -2238,37 +2441,167 @@ function loadAdData(){
       var act=list.filter(function(c){return c.status===1;}).length;
       document.getElementById('adMCh').textContent=act;
       countup(document.getElementById('adKCh'),act);
-      document.getElementById('adChBody').innerHTML=!list.length
-        ?'<tr><td colspan="4" class="tbl-empty">暂无渠道</td></tr>'
-        :list.map(function(ch){
+      var container=document.getElementById('adChBody');
+      var MAX_SHOW=3;
+      function buildTags(models,cid){
+        if(!models.length)return '';
+        var shown=models.slice(0,MAX_SHOW).map(function(m){return '<span class="ch-tag">'+m+'</span>';}).join('');
+        var extra=models.length-MAX_SHOW;
+        if(extra>0)shown+='<span class="ch-more" onclick="chExpandModels('+cid+',this)" title="点击展开全部模型">+'+extra+'</span>';
+        return '<div class="ch-models" data-all=\''+JSON.stringify(models).replace(/'/g,'&#39;')+'\' data-expanded="0">'+shown+'</div>';
+      }
+      /* 收集现有卡片 id */
+      var existingIds=new Set();
+      container.querySelectorAll('.ch-card').forEach(function(el){existingIds.add(parseInt(el.dataset.id));});
+      /* 需要的 id 集合 */
+      var newIds=new Set(list.map(function(c){return c.id;}));
+      /* 删除不再存在的卡片 */
+      existingIds.forEach(function(id){if(!newIds.has(id)){var el=container.querySelector('[data-id="'+id+'"]');if(el)el.remove();}});
+      /* 更新或插入 */
+      if(!list.length){
+        if(!container.querySelector('.ch-empty-msg')){
+          container.innerHTML='<div class="ch-empty-msg" style="padding:30px;text-align:center;color:var(--dim);font-size:12px">暂无渠道，点击右上角添加</div>';
+        }
+      } else {
+        var emptyMsg=container.querySelector('.ch-empty-msg');if(emptyMsg)emptyMsg.remove();
+        list.forEach(function(ch){
           var ok=ch.status===1;
           var models=[];
           try{models=JSON.parse(ch.models||'[]');}catch(e){}
-          return '<tr><td class="mn '+(ok?'ok':'warn')+'">'+(ok?'● OK':'● OFF')+'</td>'+
-            '<td class="nm">'+ch.name+'</td>'+
-            '<td class="mn">'+(TYPES[ch.type]||'T'+ch.type)+'</td>'+
-            '<td class="mn" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+models.join(', ')+'</td></tr>';
-        }).join('');
+          var typeLabel=TYPES[ch.type]||'T'+ch.type;
+          var card=container.querySelector('[data-id="'+ch.id+'"]');
+          if(card){
+            /* 已存在：只更新变化的字段 */
+            var dot=document.getElementById('chDot_'+ch.id);
+            if(dot){dot.className='ch-dot '+(ok?'on':'off');dot.title=ok?'运行中':'已关闭';}
+            var nameEl=card.querySelector('.ch-name');
+            if(nameEl)nameEl.textContent=ch.name;
+            var urlEl=card.querySelector('.ch-url');
+            if(urlEl)urlEl.textContent=ch.base_url||'';
+            /* 更新模型标签 */
+            var modelsDiv=card.querySelector('.ch-models');
+            var isExpanded=modelsDiv&&modelsDiv.dataset.expanded==='1';
+            if(models.length){
+              var tagsHtml;
+              if(isExpanded){
+                tagsHtml=models.map(function(m){return '<span class="ch-tag">'+m+'</span>';}).join('');
+              } else {
+                tagsHtml=models.slice(0,MAX_SHOW).map(function(m){return '<span class="ch-tag">'+m+'</span>';}).join('');
+                var extra=models.length-MAX_SHOW;
+                if(extra>0)tagsHtml+='<span class="ch-more" onclick="chExpandModels('+ch.id+',this)" title="点击展开">+'+extra+'</span>';
+              }
+              if(!modelsDiv){
+                modelsDiv=document.createElement('div');modelsDiv.className='ch-models';
+                var info=card.querySelector('.ch-info');if(info)info.insertBefore(modelsDiv,info.querySelector('.ch-health'));
+              }
+              modelsDiv.dataset.all=JSON.stringify(models);
+              modelsDiv.dataset.expanded=isExpanded?'1':'0';
+              modelsDiv.innerHTML=tagsHtml;
+            } else if(modelsDiv){modelsDiv.remove();}
+            var toggleBtn=card.querySelector('.ch-toggle-btn');
+            if(toggleBtn){toggleBtn.style.color=ok?'var(--orange)':'var(--green)';toggleBtn.textContent=ok?'关闭':'启用';toggleBtn.setAttribute('onclick','adToggleCh('+ch.id+','+ch.status+')');}
+          } else {
+            /* 不存在：插入新卡片 */
+            var div=document.createElement('div');
+            div.className='ch-card';div.dataset.id=ch.id;
+            var tagsBlock=buildTags(models,ch.id);
+            div.innerHTML='<input type="checkbox" class="ch-ck" id="chCk_'+ch.id+'" data-cid="'+ch.id+'" onchange="adChCkChange()">'+
+              '<div class="ch-dot '+(ok?'on':'off')+'" title="'+(ok?'运行中':'已关闭')+'" id="chDot_'+ch.id+'"></div>'+
+              '<div class="ch-info">'+
+                '<div class="ch-name">'+ch.name+'</div>'+
+                '<div class="ch-url">'+(ch.base_url||'')+'</div>'+
+                tagsBlock+
+                '<div class="ch-health" id="chHealth_'+ch.id+'"></div>'+
+              '</div>'+
+              '<div class="ch-acts">'+
+                '<button class="sec-hd-a" style="font-size:11px;color:var(--blue)" onclick="adFetchChModels('+ch.id+')">拉取</button>'+
+	                '<button class="sec-hd-a" style="font-size:11px;color:var(--green)" onclick="adEditCh('+ch.id+')">编辑</button>'+
+	                '<button class="sec-hd-a" style="font-size:11px;color:var(--green)" onclick="adTestCh('+ch.id+')">测试</button>'+
+                '<button class="sec-hd-a ch-toggle-btn" style="font-size:11px;color:'+(ok?'var(--orange)':'var(--green)')+'" onclick="adToggleCh('+ch.id+','+ch.status+')">'+(ok?'关闭':'启用')+'</button>'+
+                '<button class="sec-hd-a" style="font-size:11px;color:var(--red)" onclick="adDelCh('+ch.id+',\''+ch.name+'\')">删除</button>'+
+              '</div>';
+            container.appendChild(div);
+          }
+        });
+      }
       addLog('ok','已同步 '+list.length+' 个渠道');
     }).catch(function(){addLog('err','渠道加载失败');});
 
-  /* 加载定价 */
-  fetch('/api/pricing').then(function(r){return r.json();}).then(function(d){
-    var list=d&&d.data||[];
-    document.getElementById('adPrBody').innerHTML=!list.length
-      ?'<tr><td colspan="4" class="tbl-empty">暂无模型定价</td></tr>'
-      :list.map(function(p,i){
-        return '<tr id="pr_'+i+'">'+
-          '<td class="nm">'+p.model_name+'</td>'+
-          '<td class="mn hi"><input class="ad-price-inp" id="prIn_'+i+'" data-mn="'+p.model_name+'" value="'+(p.input_price||0).toFixed(4)+'" disabled></td>'+
-          '<td class="mn hi"><input class="ad-price-inp" id="prOut_'+i+'" data-mn="'+p.model_name+'" value="'+(p.output_price||0).toFixed(4)+'" disabled></td>'+
-          '<td class="mn" style="white-space:nowrap">'+
-            '<button class="sec-hd-a" style="font-size:11px" id="prEditBtn_'+i+'" onclick="adEditPricing('+i+')">编辑</button>'+
-            '<button class="sec-hd-a" style="font-size:11px;color:var(--red);margin-left:6px" onclick="adDelPricing(\''+p.model_name+'\')">删除</button>'+
-          '</td>'+
-          '</tr>';
-      }).join('');
-  }).catch(function(){document.getElementById('adPrBody').innerHTML='<tr><td colspan="4" class="tbl-empty">加载失败</td></tr>';});
+  /* 加载定价 — 与渠道数据合并，按渠道分组 */
+  Promise.all([
+    api('/api/channel/',{credentials:'include'}).then(function(r){return r.json();}),
+    fetch('/api/pricing').then(function(r){return r.json();})
+  ]).then(function(results){
+    var chData=results[0];
+    var prData=results[1];
+    var channels=(chData.data&&chData.data.items)?chData.data.items:(Array.isArray(chData.data)?chData.data:[]);
+    var rawPrList=prData&&prData.data||[];
+    /* 缓存：定价数据不变时跳过重算 */
+    var prHash=JSON.stringify(rawPrList);
+    if(window._prHash===prHash){ return; }
+    window._prHash=prHash;
+    /* New API 返回倍率制，换算成 ¥/百万tokens 直显：
+       1 ratio = $0.002/1K tokens → ¥/M = ratio × 0.002 × 1000 × 7.3 = ratio × 14.6 */
+    var RATE=14.6;
+    var prList=rawPrList.map(function(p){
+      var mr=p.model_ratio||0, cr=p.completion_ratio||1, kar=p.cache_ratio||0;
+      return {
+        model_name:p.model_name,
+        input_price: +(mr*RATE).toFixed(4),
+        output_price: +(mr*cr*RATE).toFixed(4),
+        cache_price: +(mr*kar*RATE).toFixed(4),
+        _readonly:true
+      };
+    });
+    var prMap={};
+    prList.forEach(function(p){prMap[p.model_name]=p;});
+
+    /* 构建渠道→模型映射 */
+    var chGroups=[{id:0,name:'全部',models:prList.map(function(p){return p.model_name;})}];
+    channels.forEach(function(ch){
+      var models=[];
+      try{models=JSON.parse(ch.models||'[]');}catch(e){}
+      if(models.length)chGroups.push({id:ch.id,name:ch.name,models:models});
+    });
+
+    /* 渲染渠道 tabs */
+    var tabsEl=document.getElementById('adPrTabs');
+    var curTab=window._adPrCurTab||0;
+    var tabsHtml=chGroups.map(function(g){
+      return '<div class="pr-tab'+(g.id===curTab?' active':'')+'" data-gid="'+g.id+'" onclick="adPrSwitchTab('+g.id+')">'+g.name+'<span style="margin-left:4px;font-weight:400;color:var(--dim);font-size:9px">'+g.models.length+'</span></div>';
+    }).join('');
+    tabsEl.innerHTML=tabsHtml;
+
+    /* 筛选当前 tab 的模型 */
+    var group=chGroups.find(function(g){return g.id===curTab;})||chGroups[0];
+    var filtered=group?prList.filter(function(p){return group.models.indexOf(p.model_name)!==-1;}):prList;
+
+    /* 保存当前勾选状态 */
+    var prevChecked=new Set();
+    document.querySelectorAll('.pr-ck:checked').forEach(function(c){prevChecked.add(c.dataset.mn);});
+
+	    document.getElementById('adPrBody').innerHTML=!filtered.length
+	      ?'<tr><td colspan="6" class="tbl-empty">该渠道暂无模型定价</td></tr>'
+	      :filtered.map(function(p,i){
+	        var sid=p.model_name.replace(/[^a-zA-Z0-9_-]/g,'_');
+	        var ck=prevChecked.has(p.model_name)?' checked':'';
+	        return '<tr id="pr_'+sid+'">'+
+	          '<td><input type="checkbox" class="pr-ck" data-mn="'+p.model_name+'"'+ck+' onchange="adPrCkChange()"></td>'+
+	          '<td class="nm">'+p.model_name+'</td>'+
+	          '<td class="mn hi"><input class="ad-price-inp" id="prIn_'+sid+'" data-mn="'+p.model_name+'" value="'+(p.input_price||0).toFixed(4)+'" disabled></td>'+
+	          '<td class="mn hi"><input class="ad-price-inp" id="prOut_'+sid+'" data-mn="'+p.model_name+'" value="'+(p.output_price||0).toFixed(4)+'" disabled></td>'+
+	          '<td class="mn hi"><input class="ad-price-inp" id="prCache_'+sid+'" data-mn="'+p.model_name+'" value="'+(p.cache_price||0).toFixed(4)+'" disabled></td>'+
+	          '<td class="mn" style="white-space:nowrap">'+
+	            (p._readonly?'<span style="color:var(--dim);font-size:10px">只读</span>':
+	            '<button class="sec-hd-a" style="font-size:11px" id="prEditBtn_'+sid+'" onclick="adEditPricing(\''+p.model_name+'\')">编辑</button>'+
+	            '<button class="sec-hd-a" style="font-size:11px;color:var(--red);margin-left:6px" onclick="adDelPricing(\''+p.model_name+'\')">删除</button>')+
+	          '</td>'+
+	          '</tr>';
+	      }).join('');
+
+    /* 恢复批量栏状态 */
+    adPrCkChange();
+  }).catch(function(){document.getElementById('adPrBody').innerHTML='<tr><td colspan="6" class="tbl-empty">加载失败</td></tr>';});
 
   api('/api/token/?p=1&page_size=1',{credentials:'include'})
     .then(function(r){return r.json();})
@@ -2285,7 +2618,7 @@ function loadAdData(){
       var list=(d.data&&d.data.items)||[];
       var BK=0.002;var CNY=SYS_CFG.usd_exchange_rate||7.3;
       document.getElementById('adUsBody').innerHTML=!list.length
-        ?'<tr><td colspan="7" class="tbl-empty">暂无用户</td></tr>'
+        ?'<tr><td colspan="8" class="tbl-empty">暂无用户</td></tr>'
         :list.map(function(u){
           var bal=(u.quota||0)/500000*CNY;
           var used=(u.used_quota||0)/500000*CNY;
@@ -2293,7 +2626,8 @@ function loadAdData(){
           return '<tr id="us_'+u.id+'">'+
             '<td class="mn">'+u.id+'</td>'+
             '<td class="nm">'+u.username+'</td>'+
-            '<td class="mn">'+(u.role==='admin'?'管理员':'用户')+'</td>'+
+            '<td class="mn">'+((u.role>=10)?'管理员':'用户')+'</td>'+
+            '<td class="mn hi">'+(u.token_count||0)+'</td>'+
             '<td class="mn hi">¥ '+bal.toFixed(2)+'</td>'+
             '<td class="mn">'+used.toFixed(2)+'</td>'+
             '<td class="mn '+(ok?'ok':'warn')+'">'+(ok?'启用':'禁用')+'</td>'+
@@ -2306,7 +2640,7 @@ function loadAdData(){
             '</td>'+
             '</tr>';
         }).join('');
-    }).catch(function(){document.getElementById('adUsBody').innerHTML='<tr><td colspan="7" class="tbl-empty">加载失败</td></tr>';});
+    }).catch(function(){document.getElementById('adUsBody').innerHTML='<tr><td colspan="8" class="tbl-empty">加载失败</td></tr>';});
 }
 
 function toggleAdPrForm(){
@@ -2314,10 +2648,15 @@ function toggleAdPrForm(){
   f.style.display=f.style.display==='none'?'flex':'none';
   if(f.style.display!=='none') f.style.flexDirection='column',f.style.gap='12px';
 }
+function adPrSwitchTab(gid){
+  window._adPrCurTab=gid;
+  loadAdData();
+}
 function adCreatePricing(){
   var mn=document.getElementById('adPrName').value.trim();
   var ip=parseFloat(document.getElementById('adPrInPrice').value)||0;
   var op=parseFloat(document.getElementById('adPrOutPrice').value)||0;
+  var cp=parseFloat(document.getElementById('adPrCachePrice').value)||0;
   var msg=document.getElementById('adPrMsg');
   msg.style.display='none';
   if(!mn){msg.textContent='模型名称不能为空';msg.style.color='var(--red)';msg.style.display='block';return;}
@@ -2325,7 +2664,7 @@ function adCreatePricing(){
   api('/api/pricing',{
     method:'POST',credentials:'include',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model_name:mn,input_price:ip,output_price:op})
+    body:JSON.stringify({model_name:mn,input_price:ip,output_price:op,cache_price:cp})
   }).then(function(r){return r.json();})
   .then(function(d){
     if(d.success){
@@ -2333,6 +2672,7 @@ function adCreatePricing(){
       document.getElementById('adPrName').value='';
       document.getElementById('adPrInPrice').value='';
       document.getElementById('adPrOutPrice').value='';
+      document.getElementById('adPrCachePrice').value='';
       document.getElementById('adPrForm').style.display='none';
       loadAdData();
     } else {
@@ -2340,51 +2680,108 @@ function adCreatePricing(){
     }
   }).catch(function(){addLog('err','定价添加请求失败');});
 }
-var _editingRow=-1;
-function adEditPricing(idx){
-  if(_editingRow>=0){
-    var prevIn=document.getElementById('prIn_'+_editingRow);
-    var prevOut=document.getElementById('prOut_'+_editingRow);
-    var prevBtn=document.getElementById('prEditBtn_'+_editingRow);
+var _editingMn=null;
+function _prSafeId(mn){return mn.replace(/[^a-zA-Z0-9_-]/g,'_');}
+function adEditPricing(mn){
+  var sid=_prSafeId(mn);
+  if(_editingMn&&_editingMn!==mn){
+    var prevIn=document.getElementById('prIn_'+_prSafeId(_editingMn));
+    var prevOut=document.getElementById('prOut_'+_prSafeId(_editingMn));
+    var prevCache=document.getElementById('prCache_'+_prSafeId(_editingMn));
+    var prevBtn=document.getElementById('prEditBtn_'+_prSafeId(_editingMn));
     if(prevIn){prevIn.disabled=true;prevIn.style.borderColor='transparent';}
     if(prevOut){prevOut.disabled=true;prevOut.style.borderColor='transparent';}
+    if(prevCache){prevCache.disabled=true;prevCache.style.borderColor='transparent';}
     if(prevBtn)prevBtn.textContent='编辑';
   }
-  if(_editingRow===idx){_editingRow=-1;return;}
-  var inp=document.getElementById('prIn_'+idx);
-  var out=document.getElementById('prOut_'+idx);
-  var btn=document.getElementById('prEditBtn_'+idx);
-  inp.disabled=false;out.disabled=false;
-  inp.style.borderColor='var(--orange)';out.style.borderColor='var(--orange)';
+  if(_editingMn===mn){_editingMn=null;return;}
+  var inp=document.getElementById('prIn_'+sid);
+  var out=document.getElementById('prOut_'+sid);
+  var cache=document.getElementById('prCache_'+sid);
+  var btn=document.getElementById('prEditBtn_'+sid);
+  if(!inp||!out||!cache||!btn)return;
+  inp.disabled=false;out.disabled=false;cache.disabled=false;
+  inp.style.borderColor='var(--orange)';out.style.borderColor='var(--orange)';cache.style.borderColor='var(--orange)';
   inp.focus();
   btn.textContent='保存';
-  btn.onclick=function(){adSavePricing(idx);};
-  _editingRow=idx;
+  btn.onclick=function(){adSavePricing(mn);};
+  _editingMn=mn;
 }
-function adSavePricing(idx){
-  var inp=document.getElementById('prIn_'+idx);
-  var out=document.getElementById('prOut_'+idx);
-  var mn=inp.dataset.mn;
+function adSavePricing(mn){
+  var sid=_prSafeId(mn);
+  var inp=document.getElementById('prIn_'+sid);
+  var out=document.getElementById('prOut_'+sid);
+  var cache=document.getElementById('prCache_'+sid);
   var newIn=parseFloat(inp.value);
   var newOut=parseFloat(out.value);
+  var newCache=cache?parseFloat(cache.value)||0:0;
   if(isNaN(newIn)||isNaN(newOut)||newIn<0||newOut<0){addLog('err','价格不能为负');return;}
   api('/api/pricing',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model_name:mn,input_price:newIn,output_price:newOut})
+    body:JSON.stringify({model_name:mn,input_price:newIn,output_price:newOut,cache_price:newCache})
   }).then(function(r){return r.json();}).then(function(d){
     if(d.success)addLog('ok',mn+' 定价已更新');
     else addLog('err','更新失败：'+(d.message||''));
-    _editingRow=-1;
+    _editingMn=null;
     loadAdData();
   }).catch(function(){addLog('err','保存请求失败');});
 }
 function adDelPricing(mn){
   if(!confirm('确定删除模型 '+mn+' 的定价？'))return;
-  api('/api/pricing/'+mn,{method:'DELETE',credentials:'include'})
+  var body={};
+  var curTab=window._adPrCurTab||0;
+  if(curTab)body.channel_id=curTab;
+  api('/api/pricing/'+mn,{method:'DELETE',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
   .then(function(r){return r.json();})
   .then(function(d){
     if(d.success){addLog('ok','定价 '+mn+' 已删除');loadAdData();}
     else addLog('err','删除失败：'+(d.message||''));
   }).catch(function(){addLog('err','定价删除请求失败');});
+}
+/* ── 定价批量选择 ── */
+function adPrGetSelNames(){
+  var cks=document.querySelectorAll('.pr-ck:checked');
+  return Array.from(cks).map(function(c){return c.dataset.mn;});
+}
+function adPrCkChange(){
+  var names=adPrGetSelNames();
+  var bar=document.getElementById('adPrBatch');
+  var cnt=document.getElementById('adPrSelCnt');
+  var allCk=document.getElementById('adPrSelAll');
+  if(names.length>0){
+    bar.classList.add('show');cnt.textContent=names.length;
+  }else{
+    bar.classList.remove('show');
+  }
+  var total=document.querySelectorAll('.pr-ck').length;
+  if(allCk)allCk.checked=names.length>0&&names.length===total;
+}
+function adPrSelAllChange(checked){
+  document.querySelectorAll('.pr-ck').forEach(function(c){c.checked=checked;});
+  adPrCkChange();
+}
+function adPrClearSel(){
+  document.querySelectorAll('.pr-ck').forEach(function(c){c.checked=false;});
+  var allCk=document.getElementById('adPrSelAll');if(allCk)allCk.checked=false;
+  document.getElementById('adPrBatch').classList.remove('show');
+}
+function adBatchDelPricing(){
+  var names=adPrGetSelNames();
+  if(!names.length){addLog('err','请先选择模型');return;}
+  if(!confirm('确定删除选中的 '+names.length+' 个模型定价？'))return;
+  var curTab=window._adPrCurTab||0;
+  var body=curTab?{channel_id:curTab}:{};
+  var done=0,total=names.length;
+  names.forEach(function(mn){
+    api('/api/pricing/'+mn,{method:'DELETE',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(){
+      done++;addLog('ok','定价 '+mn+' 已删除 ('+done+'/'+total+')');
+      if(done===total){adPrClearSel();loadAdData();}
+    }).catch(function(){
+      done++;addLog('err','定价 '+mn+' 删除失败 ('+done+'/'+total+')');
+      if(done===total){adPrClearSel();loadAdData();}
+    });
+  });
 }
 
 /* ── 用户管理 ── */
@@ -2459,9 +2856,10 @@ function adFetchModels(){
   var key=document.getElementById('adChKey').value.trim();
   var btn=document.getElementById('adChFetchBtn');
   var msg=document.getElementById('adChMsg');
-  if(!url||!key){msg.textContent='请先填写 Base URL 和 API Key';msg.style.color='var(--red)';msg.style.display='block';return;}
+  msg.classList.remove('show');
+  if(!url||!key){msg.textContent='请先填写 Base URL 和 API Key';msg.style.color='var(--red)';msg.classList.add('show');return;}
   btn.textContent='拉取中…';btn.disabled=true;
-  api('/api/channel/fetch_models',{
+  api('/api/channel/fetch_models_from_url',{
     method:'POST',credentials:'include',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({base_url:url,api_key:key})
@@ -2470,12 +2868,12 @@ function adFetchModels(){
     btn.textContent='一键拉取';btn.disabled=false;
     if(d.success){
       var models=d.data.models||[];
-      if(!models.length){msg.textContent='该渠道无可用模型';msg.style.color='var(--mid)';msg.style.display='block';return;}
-      document.getElementById('adChModels').value=models.join(', ');
-      msg.textContent='已拉取 '+models.length+' 个模型';msg.style.color='var(--green)';msg.style.display='block';
+      if(!models.length){msg.textContent='该渠道无可用模型';msg.style.color='var(--mid)';msg.classList.add('show');return;}
+      document.getElementById('adChModels').value=models.join('; ');
+      msg.textContent='已拉取 '+models.length+' 个模型';msg.style.color='var(--green)';msg.classList.add('show');
       addLog('ok','从渠道拉取 '+models.length+' 个模型');
     } else {
-      msg.textContent=d.message||'拉取失败';msg.style.color='var(--red)';msg.style.display='block';
+      msg.textContent=d.message||'拉取失败';msg.style.color='var(--red)';msg.classList.add('show');
       addLog('err','模型拉取失败：'+(d.message||''));
     }
   }).catch(function(){btn.textContent='一键拉取';btn.disabled=false;addLog('err','模型拉取请求失败');});
@@ -2487,10 +2885,10 @@ function adCreateChannel(){
   var key=document.getElementById('adChKey').value.trim();
   var modelsStr=document.getElementById('adChModels').value.trim();
   var msg=document.getElementById('adChMsg');
-  msg.style.display='none';
-  if(!name||!url||!key){msg.textContent='名称、地址、密钥不能为空';msg.style.color='var(--red)';msg.style.display='block';return;}
-  var models=modelsStr?modelsStr.split(',').map(function(m){return m.trim();}).filter(Boolean):[];
-  api('/api/channel/',{
+  msg.classList.remove('show');
+  if(!name||!url||!key){msg.textContent='名称、地址、密钥不能为空';msg.style.color='var(--red)';msg.classList.add('show');return;}
+  var models=modelsStr?modelsStr.split(';').map(function(m){return m.trim();}).filter(Boolean):[];
+  api('/api/channel/create',{
     method:'POST',credentials:'include',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({name:name,base_url:url,api_key:key,models:models,type:1})
@@ -2498,20 +2896,6 @@ function adCreateChannel(){
   .then(function(d){
     if(d.success){
       addLog('ok','渠道 '+name+' 已创建');
-      /* 自动把新模型添加到定价表（不覆盖已有的）*/
-      if(models.length){
-        var addNext=function(i){
-          if(i>=models.length){loadAdData();return;}
-          var mn=models[i];
-          api('/api/pricing',{
-            method:'POST',credentials:'include',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({model_name:mn,input_price:0,output_price:0})
-          }).then(function(){addNext(i+1);}).catch(function(){addNext(i+1);});
-        };
-        addNext(0);
-        addLog('ok','已自动添加 '+models.length+' 个模型定价（默认倍率，请按需编辑）');
-      }
       document.getElementById('adChName').value='';
       document.getElementById('adChUrl').value='';
       document.getElementById('adChKey').value='';
@@ -2520,9 +2904,223 @@ function adCreateChannel(){
       loadAdData();
     } else {
       addLog('err','创建失败：'+(d.message||''));
-      msg.textContent=d.message||'创建失败';msg.style.color='var(--red)';msg.style.display='block';
+      msg.textContent=d.message||'创建失败';msg.style.color='var(--red)';msg.classList.add('show');
     }
   }).catch(function(){addLog('err','渠道创建请求失败');});
+}
+
+/* ── 渠道选择 & 批量操作 ── */
+/* ── 渠道模型展开/折叠 ── */
+function chExpandModels(cid,el){
+  var modelsDiv=el.parentElement;
+  var isExpanded=modelsDiv.dataset.expanded==='1';
+  var all=JSON.parse(modelsDiv.dataset.all||'[]');
+  if(isExpanded){
+    /* 折叠 */
+    var MAX_SHOW=3;
+    var shown=all.slice(0,MAX_SHOW).map(function(m){return '<span class="ch-tag">'+m+'</span>';}).join('');
+    var extra=all.length-MAX_SHOW;
+    if(extra>0)shown+='<span class="ch-more" onclick="chExpandModels('+cid+',this)" title="点击展开">+'+extra+'</span>';
+    modelsDiv.innerHTML=shown;
+    modelsDiv.dataset.expanded='0';
+  } else {
+    /* 展开 */
+    modelsDiv.innerHTML=all.map(function(m){return '<span class="ch-tag">'+m+'</span>';}).join('')+
+      '<span class="ch-more" onclick="chExpandModels('+cid+',this)" title="点击折叠">−</span>';
+    modelsDiv.dataset.expanded='1';
+  }
+}
+
+/* ── 渠道选择 & 批量操作 ── */
+function adChGetSelIds(){
+  var cks=document.querySelectorAll('.ch-ck:checked');
+  return Array.from(cks).map(function(c){return parseInt(c.dataset.cid);});
+}
+function adChCkChange(){
+  var ids=adChGetSelIds();
+  var bar=document.getElementById('adChBatch');
+  var cnt=document.getElementById('adChSelCnt');
+  var allCk=document.getElementById('adChSelAll');
+  if(ids.length>0){
+    bar.classList.add('show');cnt.textContent=ids.length;
+  }else{
+    bar.classList.remove('show');
+  }
+  var total=document.querySelectorAll('.ch-ck').length;
+  if(allCk)allCk.checked=ids.length>0&&ids.length===total;
+}
+function adChSelAllChange(checked){
+  document.querySelectorAll('.ch-ck').forEach(function(c){c.checked=checked;});
+  adChCkChange();
+}
+function adChClearSel(){
+  document.querySelectorAll('.ch-ck').forEach(function(c){c.checked=false;});
+  var allCk=document.getElementById('adChSelAll');if(allCk)allCk.checked=false;
+  document.getElementById('adChBatch').classList.remove('show');
+}
+function adBatchTest(){
+  var ids=adChGetSelIds();
+  if(!ids.length){addLog('err','请先选择渠道');return;}
+  addLog('ok','开始批量测试 '+ids.length+' 个渠道…');
+  ids.forEach(function(cid){adTestCh(cid);});
+}
+function adBatchDel(){
+  var ids=adChGetSelIds();
+  if(!ids.length){addLog('err','请先选择渠道');return;}
+  if(!confirm('确定删除选中的 '+ids.length+' 个渠道？此操作不可恢复。'))return;
+  var done=0,total=ids.length;
+  ids.forEach(function(cid){
+    api('/api/channel/'+cid,{method:'DELETE',credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(){
+      done++;addLog('ok','渠道已删除 ('+done+'/'+total+')');
+      if(done===total){adChClearSel();loadAdData();}
+    }).catch(function(){
+      done++;addLog('err','渠道删除失败 ('+done+'/'+total+')');
+      if(done===total){adChClearSel();loadAdData();}
+    });
+  });
+}
+function chHealthFade(el){
+  if(!el)return;
+  setTimeout(function(){el.classList.add('fade');},3000);
+  setTimeout(function(){el.textContent='';el.className='ch-health';el.classList.remove('fade');},3600);
+}
+function adFetchChModels(cid){
+  var el=document.getElementById('chHealth_'+cid);
+  if(!el)return;
+  el.textContent='拉取中…';el.className='ch-health loading';
+  api('/api/channel/fetch_models/'+cid,{method:'GET',credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      var models=d.data||[];
+      var msg='已拉取 '+models.length+' 个模型';
+      el.textContent='✓ '+msg;el.className='ch-health ok';
+      addLog('ok',msg);
+      /* 更新渠道的 models 字段 */
+      api('/api/channel/',{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id:cid,models:models.join(',')})
+      }).then(function(){loadAdData();}).catch(function(){loadAdData();});
+      chHealthFade(el);
+    } else {
+      el.textContent='✗ '+(d.message||'拉取失败');el.className='ch-health fail';
+      addLog('err','模型拉取失败：'+d.message);
+      chHealthFade(el);
+    }
+  }).catch(function(){
+    el.textContent='✗ 请求异常';el.className='ch-health fail';
+    addLog('err','模型拉取请求失败');
+    chHealthFade(el);
+  });
+}
+function adBatchFetch(){
+  var ids=adChGetSelIds();
+  if(!ids.length){addLog('err','请先选择渠道');return;}
+  addLog('ok','开始批量拉取 '+ids.length+' 个渠道模型…');
+  ids.forEach(function(cid){adFetchChModels(cid);});
+}
+
+function adTestCh(cid){
+  var el=document.getElementById('chHealth_'+cid);
+  var dot=document.getElementById('chDot_'+cid);
+  if(!el)return;
+  el.textContent='测试中…';el.className='ch-health loading';
+  if(dot)dot.className='ch-dot on';
+  api('/api/channel/test/'+cid,{method:'GET',credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      var t=d.time||'';
+      el.textContent='✓ 连接正常'+(t?' ('+t+'ms)':'');el.className='ch-health ok';
+      if(dot){dot.className='ch-dot on';}
+      addLog('ok','渠道测试通过');
+    } else {
+      el.textContent='✗ '+(d.message||'测试失败');el.className='ch-health fail';
+      if(dot){dot.className='ch-dot off';}
+      addLog('err','渠道测试失败：'+(d.message||''));
+    }
+    chHealthFade(el);
+  }).catch(function(){
+    el.textContent='✗ 请求异常';el.className='ch-health fail';
+    addLog('err','渠道测试请求失败');
+    chHealthFade(el);
+  });
+}
+
+/* ── 渠道编辑 ── */
+var _editChId=null;
+function adEditCh(cid){
+  _editChId=cid;
+  api('/api/channel/',{credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var list=(d.data&&d.data.items)?d.data.items:(Array.isArray(d.data)?d.data:[]);
+    var ch=list.find(function(c){return c.id===cid;});
+    if(!ch){addLog('err','渠道不存在');return;}
+    document.getElementById('adChEName').value=ch.name||'';
+    document.getElementById('adChEUrl').value=ch.base_url||'';
+    document.getElementById('adChEKey').value='';
+    var models=[];
+    try{models=JSON.parse(ch.models||'[]');}catch(e){}
+    document.getElementById('adChEModels').value=models.join(';\n');
+    document.getElementById('adChEMsg').classList.remove('show');
+    document.getElementById('adChEditModal').classList.add('show');
+  }).catch(function(){addLog('err','获取渠道信息失败');});
+}
+function adChEditClose(){
+  document.getElementById('adChEditModal').classList.remove('show');
+  _editChId=null;
+}
+function adSaveCh(){
+  if(!_editChId)return;
+  var name=document.getElementById('adChEName').value.trim();
+  var url=document.getElementById('adChEUrl').value.trim();
+  var key=document.getElementById('adChEKey').value.trim();
+  var modelsStr=document.getElementById('adChEModels').value.trim();
+  var msg=document.getElementById('adChEMsg');
+  msg.classList.remove('show');
+  if(!name||!url){msg.textContent='名称和地址不能为空';msg.style.color='var(--red)';msg.classList.add('show');return;}
+  var models=modelsStr?modelsStr.split(';').map(function(m){return m.trim();}).filter(Boolean):[];
+  var body={name:name,base_url:url,models:models};
+  if(key)body.api_key=key;
+  api('/api/channel/'+_editChId,{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success){
+      addLog('ok','渠道已更新');
+      adChEditClose();
+      loadAdData();
+    } else {
+      msg.textContent=d.message||'更新失败';msg.style.color='var(--red)';msg.classList.add('show');
+    }
+  }).catch(function(){addLog('err','渠道更新请求失败');});
+}
+
+function adToggleCh(cid,curStatus){
+  var newStatus=curStatus===1?2:1;
+  var action=newStatus===1?'启用':'关闭';
+  if(!confirm('确定'+action+'该渠道？'))return;
+  api('/api/channel/'+cid,{method:'PUT',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({status:newStatus})
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success)addLog('ok','渠道已'+action);
+    else addLog('err','操作失败：'+(d.message||''));
+    loadAdData();
+  }).catch(function(){addLog('err','渠道操作请求失败');});
+}
+
+function adDelCh(cid,name){
+  if(!confirm('确定删除渠道「'+name+'」？此操作不可恢复。'))return;
+  api('/api/channel/'+cid,{method:'DELETE',credentials:'include'})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.success)addLog('ok','渠道「'+name+'」已删除');
+    else addLog('err','删除失败：'+(d.message||''));
+    loadAdData();
+  }).catch(function(){addLog('err','渠道删除请求失败');});
 }
 
 function adCreateToken(){
@@ -2530,10 +3128,10 @@ function adCreateToken(){
   if(!name){document.getElementById('adTkName').focus();return;}
   var btn=document.getElementById('adTkBtn');
   btn.disabled=true;btn.textContent='生成…';
-  api('/api/token/',{
+  api('/api/token/create',{
     method:'POST',credentials:'include',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:name,remain_quota:-1,expired_time:-1,unlimited_quota:true,model_limits_enabled:false})
+    body:JSON.stringify({name:name,remain_quota:0,expired_time:-1,unlimited_quota:true})
   }).then(function(r){return r.json();})
   .then(function(d){
     btn.disabled=false;btn.textContent='生成';
@@ -2589,7 +3187,10 @@ function loadUData(){
       /* 单位换算：从后端 /api/status 读取的真实配置 */
       var QUOTA_PER_USD = SYS_CFG.quota_per_unit;
       var USD_TO_CNY = SYS_CFG.usd_exchange_rate;
-      function fmtMoney(n,d){return n.toLocaleString('zh-CN',{minimumFractionDigits:d||2,maximumFractionDigits:d||2});}
+      function fmtMoney(n,d){
+        d=d||4;
+        return n.toLocaleString('zh-CN',{minimumFractionDigits:d,maximumFractionDigits:d});
+      }
 
       if(u.unlimited_quota){
         document.getElementById('uBalanceCN').textContent='∞';
@@ -2610,11 +3211,11 @@ function loadUData(){
         var totalCNY = totalQuota / QUOTA_PER_USD * USD_TO_CNY;
         var usedPct = totalQuota>0 ? (used/totalQuota*100) : 0;
 
-        document.getElementById('uBalanceCN').textContent=fmtMoney(balCNY,2);
-        document.getElementById('uBalanceUSD').textContent='$ '+fmtMoney(balUSD,2);
-        document.getElementById('uBalanceUnits').textContent=fmt(bal)+' 单位';
-        document.getElementById('uUsedCN').textContent=fmtMoney(usedCNY,2);
-        document.getElementById('uUsedUSD').textContent='$ '+fmtMoney(usedUSD,4);
+        document.getElementById('uBalanceCN').textContent=fmtMoney(balCNY);
+        document.getElementById('uBalanceUSD').textContent='$ '+fmtMoney(balUSD);
+        document.getElementById('uUsedCN').textContent=fmtMoney(usedCNY);
+        document.getElementById('uUsedUSD').textContent='$ '+fmtMoney(usedUSD);
+        try{document.getElementById('uBalanceUnits').textContent=fmt(bal)+' 单位';}catch(e){}
 
         document.getElementById('uBalanceFill').style.width=usedPct+'%';
         var flame=document.getElementById('uBalanceFlame');
@@ -3011,7 +3612,16 @@ function loadUModels(){
   fetch('/api/pricing')
     .then(function(r){return r.json();})
     .then(function(d){
-      var data=d&&d.data||[];
+      var raw=d&&d.data||[];
+      /* New API 倍率 → ¥/百万tokens */
+      var RATE=14.6;
+      var data=raw.map(function(p){
+        var mr=p.model_ratio||0, cr=p.completion_ratio||1, kar=p.cache_ratio||0;
+        return {model_name:p.model_name, tags:p.tags,
+          input_price:+(mr*RATE).toFixed(4),
+          output_price:+(mr*cr*RATE).toFixed(4),
+          cache_price:+(mr*kar*RATE).toFixed(4)};
+      });
       if(!data.length){
         ct.innerHTML='<div style="padding:24px;text-align:center;color:var(--dim);font-size:13px;">暂无可用模型</div>';
         return;
@@ -3203,10 +3813,10 @@ function uCreateToken(){
   var btn=document.getElementById('uTkBtn');
   var bgText=btn.querySelector('.bg-text');
   btn.disabled=true;if(bgText)bgText.textContent='生成中…';
-  api('/api/token/',{
+  api('/api/token/create',{
     method:'POST',credentials:'include',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:name,remain_quota:-1,expired_time:-1,unlimited_quota:true,model_limits_enabled:false})
+    body:JSON.stringify({name:name,remain_quota:0,expired_time:-1,unlimited_quota:true})
   }).then(function(r){return r.json();})
   .then(function(d){
     btn.disabled=false;if(bgText)bgText.textContent='生成令牌';
@@ -3311,10 +3921,13 @@ function applyLogFilter(){
       var costStr=q?('¥'+cny.toFixed(4)):'—';
       var pt=l.prompt_tokens||0;
       var ct=l.completion_tokens||0;
+      var ch=l.cached_tokens||0;
+      var miss=pt-ch;
+      var ptStr=ch>0?(ch+'/'+miss):(pt||'—');
       return '<tr>'+
         '<td class="mn">'+ts+'</td>'+
         '<td class="nm">'+(l.model_name||l.model||'—')+'</td>'+
-        '<td class="mn">'+(pt||'—')+'</td>'+
+        '<td class="mn">'+ptStr+'</td>'+
         '<td class="mn">'+(ct||'—')+'</td>'+
         '<td class="mn '+(ok?'ok':'er')+'">'+(ok?'200':'ERR')+'</td>'+
         '<td class="mn hi">'+costStr+'</td>'+
@@ -3411,10 +4024,55 @@ if(CUR_USER_ID){
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.success!==false&&d.data&&d.data.username)
-        d.data.role==='admin'?enterAdmin(d.data):enterUser(d.data);
+        (d.data.role>=10)?enterAdmin(d.data):enterUser(d.data);
       else clearCurUser();
     }).catch(function(){clearCurUser();});
 }
 </script>
+<div class="ch-modal" id="adChEditModal">
+  <div class="ch-modal-box chf">
+    <div class="chf-head">
+      <span class="chf-title">编辑渠道 · EDIT CHANNEL</span>
+      <button class="chf-close" onclick="adChEditClose()">✕</button>
+    </div>
+    <div class="chf-step">
+      <div class="chf-step-lbl">① 基本信息</div>
+      <div class="chf-row">
+        <div class="chf-field">
+          <label class="chf-lbl">渠道名称</label>
+          <input class="chf-inp" id="adChEName" placeholder="DeepSeek">
+        </div>
+        <div class="chf-field">
+          <label class="chf-lbl">Base URL</label>
+          <input class="chf-inp" id="adChEUrl" placeholder="https://api.deepseek.com/v1">
+        </div>
+      </div>
+    </div>
+    <div class="chf-step">
+      <div class="chf-step-lbl">② 密钥</div>
+      <div class="chf-row">
+        <div class="chf-field">
+          <label class="chf-lbl">API Key</label>
+          <input class="chf-inp" id="adChEKey" type="password" placeholder="留空则不修改">
+        </div>
+      </div>
+    </div>
+    <div class="chf-step">
+      <div class="chf-step-lbl">③ 模型配置</div>
+      <div class="chf-row">
+        <div class="chf-field">
+          <label class="chf-lbl">支持模型（分号分隔）</label>
+          <textarea class="chf-inp" id="adChEModels" rows="6" placeholder="deepseek-v4-flash; deepseek-v4-pro" style="resize:vertical;line-height:1.6"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="chf-foot">
+      <div class="chf-msg" id="adChEMsg"></div>
+      <div class="chf-acts">
+        <button class="btn-main" onclick="adSaveCh()">保存修改</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

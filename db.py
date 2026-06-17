@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=DELETE")
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
@@ -37,6 +37,8 @@ def init_db():
     existing = {r[0] for r in cur.fetchall()}
     if 'users' in existing and 'pricing' in existing:
         conn.close()
+        _migrate_col_cache_price()
+        _migrate_col_log_cached()
         return
     conn.executescript("""
     CREATE TABLE IF NOT EXISTS users (
@@ -80,6 +82,7 @@ def init_db():
         model_name       TEXT UNIQUE NOT NULL,
         input_price      REAL DEFAULT 0,
         output_price     REAL DEFAULT 0,
+        cache_price      REAL DEFAULT 0,
         enabled          INTEGER DEFAULT 1,
         created_at       REAL
     );
@@ -91,6 +94,7 @@ def init_db():
         channel_id       INTEGER DEFAULT 0,
         prompt_tokens    INTEGER DEFAULT 0,
         completion_tokens INTEGER DEFAULT 0,
+        cached_tokens    INTEGER DEFAULT 0,
         quota            INTEGER DEFAULT 0,
         use_time         REAL DEFAULT 0,
         is_stream        INTEGER DEFAULT 0,
@@ -115,3 +119,29 @@ def init_db():
         print(f'[MOSHU] 管理员已创建: {ADMIN_USER}')
 
     conn.close()
+    _migrate_col_cache_price()
+    _migrate_col_log_cached()
+
+def _migrate_col_log_cached():
+    """为 logs 表添加 cached_tokens 列"""
+    conn = get_db()
+    try:
+        conn.execute("ALTER TABLE logs ADD COLUMN cached_tokens INTEGER DEFAULT 0")
+        conn.commit()
+        print('[MOSHU] 迁移: 新增 cached_tokens 列')
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
+def _migrate_col_cache_price():
+    """为 pricing 表添加 cache_price 列（若新表创建时已包含则跳过）"""
+    conn = get_db()
+    try:
+        conn.execute("ALTER TABLE pricing ADD COLUMN cache_price REAL DEFAULT 0")
+        conn.commit()
+        print('[MOSHU] 迁移: 新增 cache_price 列')
+    except Exception:
+        pass  # 已存在
+    finally:
+        conn.close()

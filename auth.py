@@ -170,7 +170,9 @@ def list_users():
     page_size = int(request.args.get('page_size', 50))
     offset = (page - 1) * page_size
     items = query(
-        "SELECT id, username, display_name, role, quota, used_quota, status, created_at FROM users ORDER BY id ASC LIMIT ? OFFSET ?",
+        "SELECT u.id, u.username, u.display_name, u.role, u.quota, u.used_quota, u.status, u.created_at, "
+        "(SELECT COUNT(*) FROM tokens t WHERE t.user_id=u.id) AS token_count "
+        "FROM users u ORDER BY u.id ASC LIMIT ? OFFSET ?",
         (page_size, offset)
     )
     total = query("SELECT COUNT(*) as c FROM users", one=True)
@@ -214,6 +216,7 @@ def admin_update_user(uid):
 def admin_delete_user(uid):
     if uid == g.user_id:
         return jsonify({'success': False, 'message': '不能删除自己'}), 400
+    execute("DELETE FROM logs WHERE user_id=?", (uid,))
     execute("DELETE FROM tokens WHERE user_id=?", (uid,))
     execute("DELETE FROM users WHERE id=?", (uid,))
     return jsonify({'success': True, 'message': '已删除'})

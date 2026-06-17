@@ -1,0 +1,16 @@
+[Unit]
+Description=MOSHU Overlay - New API adapter + token key layer
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/moshu/backend
+ExecStart=/root/moshu/backend/venv/bin/gunicorn -w 1 -k gevent --worker-connections 100 -b 127.0.0.1:3001 -t 900 "overlay:make_app()"
+Restart=always
+RestartSec=5
+Environment=TZ=Asia/Shanghai
+Environment=NEWAPI_DB=/root/moshu/data/one-api.db
+Environment=MOSHU_PORTAL=/root/moshu/portal
+
+[Install]
+WantedBy=multi-user.target
