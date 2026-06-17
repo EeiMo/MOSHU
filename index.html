@@ -2260,6 +2260,21 @@ function fmt(n){
   }
   return n;
 }
+function normalizePricing(p){
+  p=p||{};
+  if('input_price' in p || 'output_price' in p || 'cache_price' in p){
+    return {model_name:p.model_name,tags:p.tags,
+      input_price:+(Number(p.input_price)||0).toFixed(4),
+      output_price:+(Number(p.output_price)||0).toFixed(4),
+      cache_price:+(Number(p.cache_price)||0).toFixed(4)};
+  }
+  var RATE=14.6;
+  var mr=Number(p.model_ratio)||0, cr=Number(p.completion_ratio)||1, kar=Number(p.cache_ratio)||0;
+  return {model_name:p.model_name,tags:p.tags,
+    input_price:+(mr*RATE).toFixed(4),
+    output_price:+(mr*cr*RATE).toFixed(4),
+    cache_price:+(mr*kar*RATE).toFixed(4)};
+}
 
 function fmtUptime(){
   var s=Math.floor((Date.now()-startTime)/1000);
@@ -2540,19 +2555,7 @@ function loadAdData(){
     var prHash=JSON.stringify(rawPrList);
     if(window._prHash===prHash){ return; }
     window._prHash=prHash;
-    /* New API 返回倍率制，换算成 ¥/百万tokens 直显：
-       1 ratio = $0.002/1K tokens → ¥/M = ratio × 0.002 × 1000 × 7.3 = ratio × 14.6 */
-    var RATE=14.6;
-    var prList=rawPrList.map(function(p){
-      var mr=p.model_ratio||0, cr=p.completion_ratio||1, kar=p.cache_ratio||0;
-      return {
-        model_name:p.model_name,
-        input_price: +(mr*RATE).toFixed(4),
-        output_price: +(mr*cr*RATE).toFixed(4),
-        cache_price: +(mr*kar*RATE).toFixed(4),
-        _readonly:true
-      };
-    });
+    var prList=rawPrList.map(function(p){return normalizePricing(p);});
     var prMap={};
     prList.forEach(function(p){prMap[p.model_name]=p;});
 
@@ -3613,15 +3616,7 @@ function loadUModels(){
     .then(function(r){return r.json();})
     .then(function(d){
       var raw=d&&d.data||[];
-      /* New API 倍率 → ¥/百万tokens */
-      var RATE=14.6;
-      var data=raw.map(function(p){
-        var mr=p.model_ratio||0, cr=p.completion_ratio||1, kar=p.cache_ratio||0;
-        return {model_name:p.model_name, tags:p.tags,
-          input_price:+(mr*RATE).toFixed(4),
-          output_price:+(mr*cr*RATE).toFixed(4),
-          cache_price:+(mr*kar*RATE).toFixed(4)};
-      });
+      var data=raw.map(function(p){return normalizePricing(p);});
       if(!data.length){
         ct.innerHTML='<div style="padding:24px;text-align:center;color:var(--dim);font-size:13px;">暂无可用模型</div>';
         return;

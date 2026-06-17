@@ -87,6 +87,7 @@ def get_pricing():
         'success': True,
         'data': items,
         'group_ratio': {'default': 1},
+        'pricing_unit': 'CNY_PER_M_TOKENS',
     })
 
 @channels.route('/api/pricing', methods=['POST'])

@@ -125,6 +125,180 @@ def _restart_newapi():
         return False
 
 
+PRICE_RATE = 14.6
+
+
+def _to_float(v, default=0.0):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return default
+
+
+def _get_uid():
+    return request.headers.get('New-Api-User') or request.cookies.get('new_api_uid')
+
+
+def _is_admin(uid):
+    if not uid:
+        return False
+    try:
+        conn = sqlite3.connect(NA_DB)
+        row = conn.execute('SELECT role FROM users WHERE id=?', (int(uid),)).fetchone()
+        conn.close()
+        return bool(row and int(row[0]) >= 10)
+    except Exception:
+        return False
+
+
+def _load_option_map(conn, key):
+    row = conn.execute('SELECT value FROM options WHERE key=?', (key,)).fetchone()
+    if not row or not row[0]:
+        return {}
+    try:
+        data = json.loads(row[0])
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _save_option_map(conn, key, data):
+    val = json.dumps(data, ensure_ascii=False, indent=2)
+    conn.execute('INSERT OR REPLACE INTO options (key, value) VALUES (?, ?)', (key, val))
+
+
+def _literal_price_row(p):
+    """New API 倍率行 → 墨枢直观价格（¥/百万 tokens）"""
+    if any(k in p for k in ('input_price', 'output_price', 'cache_price')):
+        return {
+            **p,
+            'input_price': round(_to_float(p.get('input_price')), 4),
+            'output_price': round(_to_float(p.get('output_price')), 4),
+            'cache_price': round(_to_float(p.get('cache_price')), 4),
+        }
+    mr = _to_float(p.get('model_ratio'))
+    cr = _to_float(p.get('completion_ratio'), 1.0)
+    kar = _to_float(p.get('cache_ratio'))
+    out = dict(p)
+    out['input_price'] = round(mr * PRICE_RATE, 4)
+    out['output_price'] = round(mr * cr * PRICE_RATE, 4)
+    out['cache_price'] = round(mr * kar * PRICE_RATE, 4)
+    out.pop('model_ratio', None)
+    out.pop('completion_ratio', None)
+    out.pop('cache_ratio', None)
+    return out
+
+
+@bp.route('/api/pricing', methods=['GET'])
+def pricing_list():
+    """对前端暴露直观价格；New API 内部倍率在这里换算掉。"""
+    try:
+        resp = http.get(NEWAPI + '/api/pricing', timeout=20)
+        data = resp.json()
+        rows = data.get('data') if isinstance(data, dict) else []
+        if isinstance(rows, list):
+            return jsonify({
+                'success': True,
+                'data': [_literal_price_row(p) for p in rows if isinstance(p, dict)],
+                'group_ratio': {'default': 1},
+                'pricing_unit': 'CNY_PER_M_TOKENS',
+            })
+    except Exception:
+        pass
+
+    try:
+        conn = sqlite3.connect(NA_DB)
+        conn.row_factory = sqlite3.Row
+        mr = _load_option_map(conn, 'ModelRatio')
+        cr = _load_option_map(conn, 'CompletionRatio')
+        kar = _load_option_map(conn, 'CacheRatio')
+        rows = conn.execute(
+            "SELECT model_name, tags FROM models WHERE status=1 AND deleted_at IS NULL ORDER BY model_name"
+        ).fetchall()
+        conn.close()
+        out = []
+        for r in rows:
+            name = r['model_name']
+            m = _to_float(mr.get(name))
+            c = _to_float(cr.get(name), 1.0)
+            k = _to_float(kar.get(name))
+            out.append({
+                'model_name': name,
+                'tags': r['tags'],
+                'input_price': round(m * PRICE_RATE, 4),
+                'output_price': round(m * c * PRICE_RATE, 4),
+                'cache_price': round(m * k * PRICE_RATE, 4),
+            })
+        return jsonify({'success': True, 'data': out, 'group_ratio': {'default': 1}, 'pricing_unit': 'CNY_PER_M_TOKENS'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@bp.route('/api/pricing', methods=['POST'])
+def pricing_save():
+    """前端填 ¥/百万 tokens；这里换算成 New API 内部倍率。"""
+    uid = _get_uid()
+    if not _is_admin(uid):
+        return jsonify({'success': False, 'message': '需要管理员权限'}), 403
+    d = request.get_json() or {}
+    model = (d.get('model_name') or '').strip()
+    if not model:
+        return jsonify({'success': False, 'message': '模型名不能为空'}), 400
+    input_price = _to_float(d.get('input_price'))
+    output_price = _to_float(d.get('output_price'))
+    cache_price = _to_float(d.get('cache_price'))
+    if input_price < 0 or output_price < 0 or cache_price < 0:
+        return jsonify({'success': False, 'message': '价格不能为负'}), 400
+    if input_price <= 0 and (output_price > 0 or cache_price > 0):
+        return jsonify({'success': False, 'message': '输出价或缓存价大于 0 时，输入价必须大于 0'}), 400
+
+    model_ratio = input_price / PRICE_RATE if input_price > 0 else 0
+    completion_ratio = output_price / input_price if input_price > 0 else 0
+    cache_ratio = cache_price / input_price if input_price > 0 else 0
+    try:
+        conn = sqlite3.connect(NA_DB)
+        mr = _load_option_map(conn, 'ModelRatio')
+        cr = _load_option_map(conn, 'CompletionRatio')
+        kar = _load_option_map(conn, 'CacheRatio')
+        mr[model] = round(model_ratio, 8)
+        cr[model] = round(completion_ratio, 8)
+        kar[model] = round(cache_ratio, 8)
+        _save_option_map(conn, 'ModelRatio', mr)
+        _save_option_map(conn, 'CompletionRatio', cr)
+        _save_option_map(conn, 'CacheRatio', kar)
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    _restart_newapi()
+    return jsonify({'success': True, 'message': '定价已更新', 'data': {
+        'model_name': model,
+        'input_price': input_price,
+        'output_price': output_price,
+        'cache_price': cache_price,
+    }})
+
+
+@bp.route('/api/pricing/<path:model_name>', methods=['DELETE'])
+def pricing_delete(model_name):
+    uid = _get_uid()
+    if not _is_admin(uid):
+        return jsonify({'success': False, 'message': '需要管理员权限'}), 403
+    model = model_name.strip()
+    try:
+        conn = sqlite3.connect(NA_DB)
+        for key in ('ModelRatio', 'CompletionRatio', 'CacheRatio'):
+            data = _load_option_map(conn, key)
+            data.pop(model, None)
+            _save_option_map(conn, key, data)
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    _restart_newapi()
+    return jsonify({'success': True, 'message': '定价已删除'})
+
+
 @bp.route('/api/channel/fetch_models_from_url', methods=['POST'])
 def fetch_models_from_url():
     """根据任意 URL+key 拉取模型列表（New API 没有此端点）"""
