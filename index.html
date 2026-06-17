@@ -3921,7 +3921,8 @@ function applyLogFilter(){
       var costStr=q?('¥'+cny.toFixed(4)):'—';
       var pt=Number(l.prompt_tokens)||0;
       var ct=Number(l.completion_tokens)||0;
-      var ch=Number(l.cached_tokens)||0;
+      var ch=Number(l.cached_tokens)||Number(l.cache_tokens)||0;
+      if(!ch&&l.other){try{var od=typeof l.other==='string'?JSON.parse(l.other):l.other;ch=Number(od.cache_tokens)||Number(od.cached_tokens)||0;}catch(e){}}
       if(pt<0)pt=0;
       if(ch<0)ch=0;
       if(ch>pt)ch=pt;
