@@ -3919,11 +3919,14 @@ function applyLogFilter(){
       var q=l.quota||0;
       var cny=q/SYS_CFG.quota_per_unit*SYS_CFG.usd_exchange_rate;
       var costStr=q?('¥'+cny.toFixed(4)):'—';
-      var pt=l.prompt_tokens||0;
-      var ct=l.completion_tokens||0;
-      var ch=l.cached_tokens||0;
+      var pt=Number(l.prompt_tokens)||0;
+      var ct=Number(l.completion_tokens)||0;
+      var ch=Number(l.cached_tokens)||0;
+      if(pt<0)pt=0;
+      if(ch<0)ch=0;
+      if(ch>pt)ch=pt;
       var miss=pt-ch;
-      var ptStr=ch>0?(ch+'/'+miss):(pt||'—');
+      var ptStr=ch+'/'+miss;
       return '<tr>'+
         '<td class="mn">'+ts+'</td>'+
         '<td class="nm">'+(l.model_name||l.model||'—')+'</td>'+
