@@ -82,10 +82,80 @@ def fetch_deepseek():
 
 
 # ── 上游注册表 ──
+# 无参抓取器：抓官网公开定价页
 SOURCES = {
     'derouter': fetch_derouter,
     'deepseek': fetch_deepseek,
 }
+
+# 带渠道参数的抓取器：用渠道自己的 base_url+key 调上游 API
+CHANNEL_SOURCES = set()  # 在下方填充
+
+
+def fetch_openai_compatible(base_url, api_key, models=None):
+    """通用抓取器：调上游 /v1/models，尝试从响应里提取价格。
+    兼容多种价格字段命名（pricing/input_price/per_input_price 等）。
+    models: 可选，只保留这些模型。"""
+    base = (base_url or '').rstrip('/')
+    if base.endswith('/v1'):
+        url = base + '/models'
+    else:
+        url = base + '/v1/models'
+    resp = http.get(url, headers={'Authorization': 'Bearer ' + api_key}, timeout=20)
+    if resp.status_code != 200:
+        raise RuntimeError(f'上游 /v1/models 返回 {resp.status_code}')
+    data = resp.json()
+    items = data.get('data') if isinstance(data, dict) else data
+    if not isinstance(items, list):
+        raise RuntimeError('上游 /v1/models 响应无 data 列表')
+    out = {}
+    for m in items:
+        if not isinstance(m, dict):
+            continue
+        mid = m.get('id')
+        if not mid:
+            continue
+        if models and mid not in models:
+            continue
+        # 尝试多种价格字段命名
+        pricing = m.get('pricing') or m.get('price') or {}
+        if not isinstance(pricing, dict):
+            pricing = {}
+        inp = _first_float(pricing, ['input', 'input_price', 'per_input_price', 'prompt'])
+        outp = _first_float(pricing, ['output', 'output_price', 'per_output_price', 'completion'])
+        cache = _first_float(pricing, ['cache_read', 'cache_read_input_price', 'cached_tokens', 'cache'])
+        if inp is None and outp is None:
+            continue  # 该模型没价格字段，跳过
+        out[mid] = {'input_usd': inp, 'output_usd': outp, 'cache_usd': cache}
+    return out
+
+
+def _first_float(d, keys):
+    for k in keys:
+        if k in d and d[k] is not None:
+            try:
+                return float(d[k])
+            except (TypeError, ValueError):
+                continue
+    return None
+
+
+CHANNEL_SOURCES = {'openai_compatible'}
+
+# base_url → price_source 自动识别
+BASEURL_SOURCE_MAP = [
+    ('deepseek.com', 'deepseek'),
+    ('derouter.ai', 'derouter'),
+]
+
+
+def detect_source_by_baseurl(base_url):
+    """根据渠道 base_url 自动判断价格来源。返回 source 或 None。"""
+    u = (base_url or '').lower()
+    for needle, src in BASEURL_SOURCE_MAP:
+        if needle in u:
+            return src
+    return None
 
 
 def usd_to_cny(v):
@@ -167,46 +237,65 @@ def set_channel_source(conn, cid, source):
     conn.commit()
 
 
-def sync_channel(conn, cid, source):
-    """同步单个渠道。返回报告 dict。"""
+def sync_channel(conn, cid, source=None):
+    """同步单个渠道。source 为 None 时自动检测。返回报告 dict。"""
+    row = conn.execute('SELECT models, base_url, key FROM channels WHERE id=?', (cid,)).fetchone()
+    if not row:
+        return {'success': False, 'message': '渠道不存在'}
+    models_str, base_url, api_key = row[0], row[1], row[2]
+    try:
+        ch_models = [m.strip() for m in (models_str or '').split(',') if m.strip()]
+    except Exception:
+        ch_models = []
+
+    if not source:
+        source = detect_source_by_baseurl(base_url)
+        if not source:
+            source = 'openai_compatible'  # 兜底：试通用 API 抓取
+
+    # 渠道参数型抓取器
+    if source == 'openai_compatible':
+        if not api_key:
+            return {'success': False, 'message': '通用抓取需要渠道 API Key', 'source': source}
+        try:
+            prices = fetch_openai_compatible(base_url, api_key, ch_models)
+        except Exception as e:
+            return {'success': False, 'message': f'通用抓取失败: {e}', 'source': source}
+        if not prices:
+            return {'success': False, 'message': '上游 /v1/models 未返回价格字段，需手动配价', 'source': source, 'channel_models': ch_models}
+        updated, skipped = apply_prices(prices, conn)
+        return {
+            'success': True, 'source': source, 'channel_models': ch_models,
+            'matched': [u['model_name'] for u in updated], 'updated': updated,
+            'skipped': skipped, 'missing': [m for m in ch_models if m not in prices],
+        }
+
+    # 官网页无参抓取器
     fetcher = SOURCES.get(source)
     if not fetcher:
         return {'success': False, 'message': f'未知价格来源: {source}'}
     prices = fetcher()
-    # 该渠道实际拥有的模型
-    row = conn.execute('SELECT models FROM channels WHERE id=?', (cid,)).fetchone()
-    if not row:
-        return {'success': False, 'message': '渠道不存在'}
-    try:
-        ch_models = [m.strip() for m in (row[0] or '').split(',') if m.strip()]
-    except Exception:
-        ch_models = []
-    # 过滤出该渠道的模型（价格表里可能还有别的模型）
     target = {nm: p for nm, p in prices.items() if nm in ch_models}
     missing = [m for m in ch_models if m not in prices]
     updated, skipped = apply_prices(target, conn)
     return {
-        'success': True,
-        'source': source,
-        'channel_models': ch_models,
-        'matched': [u['model_name'] for u in updated],
-        'updated': updated,
-        'skipped': skipped,
-        'missing': missing,   # 渠道有但上游价格表没有的模型
+        'success': True, 'source': source, 'channel_models': ch_models,
+        'matched': [u['model_name'] for u in updated], 'updated': updated,
+        'skipped': skipped, 'missing': missing,
     }
 
 
 def sync_all(conn):
-    """同步所有标记了 price_source 的渠道。"""
+    """同步所有渠道。已显式配置来源的用配置值，否则按 base_url 自动检测/兜底通用抓取。"""
     sources = get_channel_sources(conn)
     channels = conn.execute('SELECT id, name FROM channels WHERE status=1').fetchall()
     report = []
     for cid, cname in channels:
         src = sources.get(str(cid))
-        if not src or src == 'manual':
-            report.append({'channel_id': cid, 'channel_name': cname, 'source': src or 'manual', 'success': False, 'message': '未配置价格来源或为手动'})
+        if src == 'manual':
+            report.append({'channel_id': cid, 'channel_name': cname, 'source': 'manual', 'success': False, 'message': '手动，跳过'})
             continue
-        r = sync_channel(conn, cid, src)
+        r = sync_channel(conn, cid, src)  # src 为 None 时内部自动检测
         r['channel_id'] = cid
         r['channel_name'] = cname
         report.append(r)

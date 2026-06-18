@@ -2754,11 +2754,19 @@ function adPricingSources(){
       var chs=d.channels||[];
       var srcs=d.sources||[];
       var rows=chs.map(function(c){
-        var opts=['<option value="manual">手动（不自动同步）</option>']
-          .concat(srcs.map(function(s){return '<option value="'+s+'"'+(c.price_source===s?' selected':'')+'>'+s+'（官网自动）</option>';}));
+        var opts=['<option value="auto">自动检测（推荐）</option>','<option value="manual">手动（不自动同步）</option>']
+          .concat(srcs.map(function(s){
+            if(s==='manual'||s==='auto')return '';
+            return '<option value="'+s+'">'+s+'</option>';
+          }));
+        // 当前选中值：手动配过用配置值，否则 auto
+        var cur=c.configured?c.price_source:'auto';
+        var optHtml=opts.join('').replace('value="'+cur+'"','value="'+cur+'" selected');
+        var hint=c.is_auto?(c.detected?('识别为 '+c.detected):'将用通用API抓取'):'已手动配置';
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)">'+
-          '<span style="flex:0 0 140px;font-size:13px;color:var(--paper)">'+c.name+'</span>'+
-          '<select class="ad-price-inp" style="flex:1;padding:8px" onchange="adPricingSetSource('+c.id+',this.value)">'+opts.join('')+'</select>'+
+          '<span style="flex:0 0 120px;font-size:13px;color:var(--paper)">'+c.name+'</span>'+
+          '<select class="ad-price-inp" style="flex:1;padding:8px" onchange="adPricingSetSource('+c.id+',this.value)">'+optHtml+'</select>'+
+          '<span style="flex:0 0 auto;font-size:10px;color:var(--dim)">'+hint+'</span>'+
           '</div>';
       }).join('');
       document.getElementById('adPrSrcBody').innerHTML=rows||'<div class="tbl-empty">暂无渠道</div>';

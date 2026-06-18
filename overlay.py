@@ -308,21 +308,32 @@ def pricing_delete(model_name):
 # ── 定价同步：按渠道上游官网抓取真实价格 ──
 @bp.route('/api/pricing/sources', methods=['GET'])
 def pricing_sources_list():
-    """返回所有可用价格来源 + 各渠道当前配置。"""
+    """返回所有可用价格来源 + 各渠道当前配置 + 自动检测建议。"""
     import pricing_sync
     try:
         conn = sqlite3.connect(NA_DB)
-        sources = {k: True for k in pricing_sync.SOURCES}
         ch_sources = pricing_sync.get_channel_sources(conn)
-        channels = conn.execute('SELECT id, name FROM channels WHERE status=1 ORDER BY id').fetchall()
+        channels = conn.execute('SELECT id, name, base_url FROM channels WHERE status=1 ORDER BY id').fetchall()
         conn.close()
+        all_sources = list(pricing_sync.SOURCES.keys()) + list(pricing_sync.CHANNEL_SOURCES)
+        out = []
+        for c in channels:
+            cid, cname, base_url = c[0], c[1], c[2]
+            cur = ch_sources.get(str(cid), '')
+            detected = pricing_sync.detect_source_by_baseurl(base_url)
+            # 没显式配置时显示自动检测/通用抓取的结果
+            shown = cur or detected or 'openai_compatible'
+            out.append({
+                'id': cid, 'name': cname,
+                'price_source': shown,
+                'configured': bool(cur),          # 是否手动配过
+                'detected': detected,             # base_url 识别出的来源
+                'is_auto': not bool(cur),         # 是否走自动
+            })
         return jsonify({
             'success': True,
-            'sources': list(pricing_sync.SOURCES.keys()),
-            'channels': [
-                {'id': c[0], 'name': c[1], 'price_source': ch_sources.get(str(c[0]), 'manual')}
-                for c in channels
-            ],
+            'sources': all_sources + ['manual', 'auto'],
+            'channels': out,
         })
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
@@ -337,12 +348,14 @@ def pricing_source_set():
     import pricing_sync
     d = request.get_json() or {}
     cid = d.get('channel_id')
-    source = (d.get('source') or 'manual').strip()
+    source = (d.get('source') or 'auto').strip()
     if cid is None:
         return jsonify({'success': False, 'message': '缺少 channel_id'}), 400
+    # auto 存为空字符串，表示走自动检测
+    store = '' if source == 'auto' else source
     try:
         conn = sqlite3.connect(NA_DB)
-        pricing_sync.set_channel_source(conn, int(cid), source)
+        pricing_sync.set_channel_source(conn, int(cid), store)
         conn.close()
         return jsonify({'success': True, 'message': f'渠道 {cid} 价格来源设为 {source}'})
     except Exception as e:
@@ -351,21 +364,21 @@ def pricing_source_set():
 
 @bp.route('/api/pricing/sync', methods=['POST'])
 def pricing_sync_run():
-    """同步定价。body: {channel_id?} 不传则同步所有已配置来源的渠道。"""
+    """同步定价。body: {channel_id?, source?}
+    不传 channel_id：自动同步所有渠道（已配置来源用配置值，否则按 base_url 检测/兜底通用抓取）。
+    传 channel_id：同步单个，source 可选（不传则自动检测）。"""
     uid = _get_uid()
     if not _is_admin(uid):
         return jsonify({'success': False, 'message': '需要管理员权限'}), 403
     import pricing_sync
     d = request.get_json() or {}
     cid = d.get('channel_id')
+    src = d.get('source')
+    if src == 'auto':
+        src = None  # auto = 让系统自动检测
     try:
         conn = sqlite3.connect(NA_DB)
         if cid:
-            sources = pricing_sync.get_channel_sources(conn)
-            src = sources.get(str(cid))
-            if not src or src == 'manual':
-                conn.close()
-                return jsonify({'success': False, 'message': '该渠道未配置价格来源'}), 400
             report = [pricing_sync.sync_channel(conn, int(cid), src)]
             report[0]['channel_id'] = cid
         else:
