@@ -30,6 +30,12 @@ def norm_name(n):
     return n.lower()
 
 
+def match_key(n):
+    """匹配用键：把点和连字符都统一成连字符，便于 4.8==4-8 容错匹配。"""
+    n = norm_name(n)
+    return re.sub(r'[.\-]+', '-', n)
+
+
 # ── 抓取器 ──
 def fetch_derouter():
     """DeRouter 官网 pricing 页，价格内联在 JSON-LD Offer 结构里。"""
@@ -275,8 +281,16 @@ def sync_channel(conn, cid, source=None):
     if not fetcher:
         return {'success': False, 'message': f'未知价格来源: {source}'}
     prices = fetcher()
-    target = {nm: p for nm, p in prices.items() if nm in ch_models}
-    missing = [m for m in ch_models if m not in prices]
+    # 容错匹配：4.8 == 4-8。建 match_key 索引，再按渠道原名写入
+    key_index = {match_key(nm): p for nm, p in prices.items()}
+    target = {}
+    missing = []
+    for cm in ch_models:
+        p = key_index.get(match_key(cm))
+        if p:
+            target[cm] = p  # 用渠道里的原名写入，保证 New API 计费能对上
+        else:
+            missing.append(cm)
     updated, skipped = apply_prices(target, conn)
     return {
         'success': True, 'source': source, 'channel_models': ch_models,

@@ -2795,7 +2795,8 @@ function adPricingSync(){
         lines.push('• '+r.channel_name+' ['+r.source+'] 同步 '+up.length+' 个：'+up.join('， ')+(r.missing&&r.missing.length?('；缺价：'+r.missing.join(',')):''));
       });
       addLog('ok','同步完成：<br>'+lines.join('<br>'));
-      loadAdData();
+      // New API 重启需几秒，延迟刷新避免渠道加载失败
+      setTimeout(loadAdData, 6000);
     }).catch(function(){addLog('err','同步请求失败');});
 }
 /* ── 定价批量选择 ── */
