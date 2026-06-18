@@ -305,6 +305,78 @@ def pricing_delete(model_name):
     return jsonify({'success': True, 'message': '定价已删除'})
 
 
+# ── 定价同步：按渠道上游官网抓取真实价格 ──
+@bp.route('/api/pricing/sources', methods=['GET'])
+def pricing_sources_list():
+    """返回所有可用价格来源 + 各渠道当前配置。"""
+    import pricing_sync
+    try:
+        conn = sqlite3.connect(NA_DB)
+        sources = {k: True for k in pricing_sync.SOURCES}
+        ch_sources = pricing_sync.get_channel_sources(conn)
+        channels = conn.execute('SELECT id, name FROM channels WHERE status=1 ORDER BY id').fetchall()
+        conn.close()
+        return jsonify({
+            'success': True,
+            'sources': list(pricing_sync.SOURCES.keys()),
+            'channels': [
+                {'id': c[0], 'name': c[1], 'price_source': ch_sources.get(str(c[0]), 'manual')}
+                for c in channels
+            ],
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@bp.route('/api/pricing/source', methods=['POST'])
+def pricing_source_set():
+    """设置某渠道的价格来源。body: {channel_id, source}"""
+    uid = _get_uid()
+    if not _is_admin(uid):
+        return jsonify({'success': False, 'message': '需要管理员权限'}), 403
+    import pricing_sync
+    d = request.get_json() or {}
+    cid = d.get('channel_id')
+    source = (d.get('source') or 'manual').strip()
+    if cid is None:
+        return jsonify({'success': False, 'message': '缺少 channel_id'}), 400
+    try:
+        conn = sqlite3.connect(NA_DB)
+        pricing_sync.set_channel_source(conn, int(cid), source)
+        conn.close()
+        return jsonify({'success': True, 'message': f'渠道 {cid} 价格来源设为 {source}'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@bp.route('/api/pricing/sync', methods=['POST'])
+def pricing_sync_run():
+    """同步定价。body: {channel_id?} 不传则同步所有已配置来源的渠道。"""
+    uid = _get_uid()
+    if not _is_admin(uid):
+        return jsonify({'success': False, 'message': '需要管理员权限'}), 403
+    import pricing_sync
+    d = request.get_json() or {}
+    cid = d.get('channel_id')
+    try:
+        conn = sqlite3.connect(NA_DB)
+        if cid:
+            sources = pricing_sync.get_channel_sources(conn)
+            src = sources.get(str(cid))
+            if not src or src == 'manual':
+                conn.close()
+                return jsonify({'success': False, 'message': '该渠道未配置价格来源'}), 400
+            report = [pricing_sync.sync_channel(conn, int(cid), src)]
+            report[0]['channel_id'] = cid
+        else:
+            report = pricing_sync.sync_all(conn)
+        conn.close()
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    _restart_newapi()
+    return jsonify({'success': True, 'report': report})
+
+
 @bp.route('/api/channel/fetch_models_from_url', methods=['POST'])
 def fetch_models_from_url():
     """根据任意 URL+key 拉取模型列表（New API 没有此端点）"""

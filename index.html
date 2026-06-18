@@ -1595,7 +1595,11 @@ body.reg #lgLoginBtn{display:none;}
       <div>
         <div class="sec-hd">
           <span class="sec-hd-t">模型定价 · PRICING</span>
-          <a class="sec-hd-a" href="javascript:void(0)" onclick="toggleAdPrForm()">+ 添加</a>
+          <div style="display:flex;align-items:center;gap:10px">
+            <a class="sec-hd-a" href="javascript:void(0)" onclick="adPricingSources()">价格来源</a>
+            <a class="sec-hd-a" href="javascript:void(0)" onclick="adPricingSync()">同步官网价</a>
+            <a class="sec-hd-a" href="javascript:void(0)" onclick="toggleAdPrForm()">+ 添加</a>
+          </div>
         </div>
         <div class="fbox" id="adPrForm" style="display:none;">
           <div class="f-row">
@@ -2739,6 +2743,52 @@ function adDelPricing(mn){
     if(d.success){addLog('ok','定价 '+mn+' 已删除');loadAdData();}
     else addLog('err','删除失败：'+(d.message||''));
   }).catch(function(){addLog('err','定价删除请求失败');});
+}
+/* ── 定价同步：按渠道上游官网抓取真实价格 ── */
+function adPrSrcClose(){document.getElementById('adPrSrcModal').classList.remove('show');}
+function adPricingSources(){
+  api('/api/pricing/sources',{credentials:'include'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d.success){addLog('err',d.message||'加载失败');return;}
+      var chs=d.channels||[];
+      var srcs=d.sources||[];
+      var rows=chs.map(function(c){
+        var opts=['<option value="manual">手动（不自动同步）</option>']
+          .concat(srcs.map(function(s){return '<option value="'+s+'"'+(c.price_source===s?' selected':'')+'>'+s+'（官网自动）</option>';}));
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)">'+
+          '<span style="flex:0 0 140px;font-size:13px;color:var(--paper)">'+c.name+'</span>'+
+          '<select class="ad-price-inp" style="flex:1;padding:8px" onchange="adPricingSetSource('+c.id+',this.value)">'+opts.join('')+'</select>'+
+          '</div>';
+      }).join('');
+      document.getElementById('adPrSrcBody').innerHTML=rows||'<div class="tbl-empty">暂无渠道</div>';
+      document.getElementById('adPrSrcModal').classList.add('show');
+    }).catch(function(){addLog('err','价格来源加载失败');});
+}
+function adPricingSetSource(cid,src){
+  api('/api/pricing/source',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({channel_id:cid,source:src})})
+    .then(function(r){return r.json();})
+    .then(function(d){addLog(d.success?'ok':'err',d.message||'设置失败');})
+    .catch(function(){addLog('err','设置请求失败');});
+}
+function adPricingSync(){
+  if(!confirm('从各渠道官网同步模型定价？已配置来源的渠道会被覆盖为官网价。'))return;
+  addLog('ok','开始同步官网价…');
+  api('/api/pricing/sync',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:'{}'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d.success){addLog('err',d.message||'同步失败');return;}
+      var rep=d.report||[];
+      var lines=[];
+      rep.forEach(function(r){
+        if(!r.success){lines.push('• '+r.channel_name+': '+(r.message||'跳过'));return;}
+        var up=(r.updated||[]).map(function(u){return u.model_name+' ¥'+u.input_price+'/'+u.output_price+'/'+u.cache_price;});
+        lines.push('• '+r.channel_name+' ['+r.source+'] 同步 '+up.length+' 个：'+up.join('， ')+(r.missing&&r.missing.length?('；缺价：'+r.missing.join(',')):''));
+      });
+      addLog('ok','同步完成：<br>'+lines.join('<br>'));
+      loadAdData();
+    }).catch(function(){addLog('err','同步请求失败');});
 }
 /* ── 定价批量选择 ── */
 function adPrGetSelNames(){
@@ -4070,6 +4120,18 @@ if(CUR_USER_ID){
       <div class="chf-acts">
         <button class="btn-main" onclick="adSaveCh()">保存修改</button>
       </div>
+    </div>
+  </div>
+</div>
+<div class="ch-modal" id="adPrSrcModal" onclick="if(event.target===this)adPrSrcClose()">
+  <div class="ch-modal-box chf" style="width:560px">
+    <div class="chf-head">
+      <span class="chf-title">价格来源配置 · PRICE SOURCES</span>
+      <button class="chf-close" onclick="adPrSrcClose()">✕</button>
+    </div>
+    <div class="chf-step">
+      <div style="color:var(--dim);font-size:12px;margin-bottom:10px">为每个渠道选择价格来源。官网来源会自动抓取上游定价；手动则需自行维护。</div>
+      <div id="adPrSrcBody"></div>
     </div>
   </div>
 </div>
