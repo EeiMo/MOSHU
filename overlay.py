@@ -168,8 +168,9 @@ def _save_option_map(conn, key, data):
 
 
 def _literal_price_row(p):
-    """New API 倍率行 → 墨枢直观价格（¥/百万 tokens）"""
-    if any(k in p for k in ('input_price', 'output_price', 'cache_price')):
+    """New API 倍率行 → 墨枢直观价格（¥/百万 tokens），同时保留倍率字段供 New API 后台用。"""
+    if any(k in p for k in ('input_price', 'output_price', 'cache_price')) and \
+       not any(k in p for k in ('model_ratio', 'completion_ratio', 'cache_ratio')):
         return {
             **p,
             'input_price': round(_to_float(p.get('input_price')), 4),
@@ -180,12 +181,14 @@ def _literal_price_row(p):
     cr = _to_float(p.get('completion_ratio'), 1.0)
     kar = _to_float(p.get('cache_ratio'))
     out = dict(p)
+    # 直观价格（给墨枢前端用）
     out['input_price'] = round(mr * PRICE_RATE, 4)
     out['output_price'] = round(mr * cr * PRICE_RATE, 4)
     out['cache_price'] = round(mr * kar * PRICE_RATE, 4)
-    out.pop('model_ratio', None)
-    out.pop('completion_ratio', None)
-    out.pop('cache_ratio', None)
+    # 同时保留倍率字段（给 New API 原生后台用，避免 ¥NaN）
+    out['model_ratio'] = mr
+    out['completion_ratio'] = cr
+    out['cache_ratio'] = kar
     return out
 
 
@@ -228,6 +231,9 @@ def pricing_list():
                 'input_price': round(m * PRICE_RATE, 4),
                 'output_price': round(m * c * PRICE_RATE, 4),
                 'cache_price': round(m * k * PRICE_RATE, 4),
+                'model_ratio': m,
+                'completion_ratio': c,
+                'cache_ratio': k,
             })
         return jsonify({'success': True, 'data': out, 'group_ratio': {'default': 1}, 'pricing_unit': 'CNY_PER_M_TOKENS'})
     except Exception as e:
